@@ -52,6 +52,8 @@ frameRate(60);
             this.x = x;
             this.y = y;
             k = random(0, 2);
+            this.off = false;
+            this.delay = random(1, 3);
             if (k < 1)
             {
                 this.kind = 0; // white
@@ -63,6 +65,7 @@ frameRate(60);
             }
             this.angle = 0;
             this.angleSpeed = 0.02;
+            this.lastTime = millis();
         };
 
         var initTilemap = function(tilemap) {
@@ -95,6 +98,7 @@ frameRate(60);
         };
 
         var NPC1Obj = function(x,y){//create NPC 1 object
+            this.color = 1;
             this.position = new PVector(x, y);
             this.NPC = [];
             this.NPCL = [];
@@ -123,6 +127,7 @@ frameRate(60);
         };
 
         var NPC2Obj = function(x,y){//create NPC 1 object
+            this.color = 0;
             this.position = new PVector(x, y);
             this.NPC = [];
             this.NPCL = [];
@@ -233,8 +238,10 @@ frameRate(60);
         };
 
         exitObj.prototype.draw = function() {
-            fill(255, 222, 222);
-            rect(this.x, this.y, 40, 80);
+            fill(130, 87, 87);
+            rect(this.x, this.y, 80, 80);
+            fill(0);
+            rect(this.x + 10, this.y + 10, 80 - 20, 80 - 10);
         };
         
         lightObj.prototype.draw = function() {
@@ -244,7 +251,7 @@ frameRate(60);
             ellipse(xr, yr, 5, 5);
             pushMatrix();
             translate(xr, yr);
-            rotate(this.angle);
+            //rotate(this.angle);
             noStroke();
             fill(255, 213, 0);
             var x = -20;
@@ -275,6 +282,22 @@ frameRate(60);
                 g = 3;
                 b = 28;
             }
+            
+            if (this.off) {
+                if (millis() - this.lastTime > 3000) // 3s
+                {
+                    this.off = false;
+                    this.lastTime = millis();
+                }
+            }
+            else {
+                if (millis() - this.lastTime > this.delay * 1000)
+                {
+                    this.off = true;
+                    this.lastTime = millis();
+                }
+            }
+            if (!this.off) {
             fill(r, g, b, 80);
             rect(xl, yl, 24.5, 20);
             fill(r, g, b, 70);
@@ -283,11 +306,12 @@ frameRate(60);
             rect(xl, yl + 30, 24.5, 5);
             fill(r, g, b, 50);
             rect(xl, yl + 35, 24.5, 2);
-            if (this.angle < (-PI/2 + 0.1) || this.angle > (PI/2 - 0.1)) {
-                this.angleSpeed = -this.angleSpeed;
             }
+            //if (this.angle < (-PI/2 + 0.1) || this.angle > (PI/2 - 0.1)) {
+             //   this.angleSpeed = -this.angleSpeed;
+            //}
             popMatrix();
-            this.angle += this.angleSpeed;
+            //this.angle += this.angleSpeed;
         };
 
         var drawTilemap = function() {
@@ -848,7 +872,7 @@ frameRate(60);
     "----------------l---------------",
     "-------------t------------------",
     "-------wwwwwwwwwwwwwwwwwwwwwwwww",
-    "----------------------------1-2-",
+    "-----------l----------------1-2-",
     "--------------------------------",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
     ];
@@ -856,14 +880,32 @@ frameRate(60);
         // END - tilemaps =========================================================
 
         // START - functionality ===================================================================
-        lightObj.prototype.found = function(x2, y2, w, h) {
+        lightObj.prototype.found = function(player) {
+            if (this.off) {
+                return false;
+            }
+
             var x1 = this.x + 7.5;
             var y1 = this.y + 25;
-            if (checkCollision(x1, x2, 24.5, 35, x2, y2, w, h)) {
+            var x2 = player.position.x;
+            var y2 = player.position.y;
+            if (checkCollision(x1, y1, 24.5, 35, x2, y2, 40, 80) && this.kind != player.color) {
                 return true;
             }
             return false;
         };
+
+        exitObj.prototype.collide = function(x2, y2, w2, h2) {
+            var x1 = this.x + 10 + 30;
+            var y1 = this.y + 10;
+            var w1 = 60;
+            var h1 = 70;
+            if (checkCollision(x1, y1, w1, h1, x2, y2, w2, h2))
+            {
+                return true;
+            }
+            return false;
+        }
 
         var mouseClicked = function() {
             if(start ===0){
@@ -1011,6 +1053,29 @@ frameRate(60);
             }
         }
         }
+
+        var checkGameEnd = function()
+        {
+            for (var i=0; i < players.length; i++) {
+                var player = players[i];
+                var x2 = player.position.x;
+                var y2 = player.position.y;
+                for (var j=0; j < lights.length; j++) {
+                    if (lights[j].found(player)) {
+                        start = 5;
+                        return;
+                    }
+                }
+                for (var j=0; j < exits.length; j++) {
+                    var exit = exits[j];
+                    if (exit.collide(x2, y2, 40, 80)) {
+                        start = 6;
+                        return;
+                    }
+                }
+            }
+        }
+
         // END - funtionality =========================================================================
 
         var draw = function() {
@@ -1049,6 +1114,15 @@ frameRate(60);
                 textSize(20);
                 text("BACK", 12, 37);
                 drawTilemap();
+                checkGameEnd();
+            }
+            else if (start === 5) { // lose
+                background(85, 106, 163);
+                text("You Lose", 500, 300);
+            }
+            else if (start === 6) { // win
+                background(85, 106, 163);
+                text("You Win", 500, 300);
             }
 
         };
