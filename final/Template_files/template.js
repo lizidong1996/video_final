@@ -74,6 +74,34 @@ frameRate(60);
             this.NPCL.push(loadImage("Template_files/whiteLleg2.png"));
         };
 
+        var copObj = function(x,y){//create NPC 1 object
+            this.position = new PVector(x, y);
+            this.NPC = [];
+            this.NPCL = [];
+            this.Lspeed =-0.1;
+            this.Rspeed = 0.1;
+            this.Lrotate = 0;
+            this.Rrotate = 0;
+
+            this.LspeedLeg =-0.1;
+            this.RspeedLeg = 0.1;
+            this.LrotateLeg = 0;
+            this.RrotateLeg = 0;
+
+            this.direction =1;
+            this.NPC.push(loadImage("Template_files/copRbody.png"));
+            this.NPC.push(loadImage("Template_files/copRarm.png"));
+            this.NPC.push(loadImage("Template_files/copRarm2.png"));
+            this.NPC.push(loadImage("Template_files/copRleg1.png"));
+            this.NPC.push(loadImage("Template_files/copRleg2.png"));
+
+            this.NPCL.push(loadImage("Template_files/copLbody.png"));
+            this.NPCL.push(loadImage("Template_files/copLarm.png"));
+            this.NPCL.push(loadImage("Template_files/copLarm2.png"));
+            this.NPCL.push(loadImage("Template_files/copLleg1.png"));
+            this.NPCL.push(loadImage("Template_files/copLleg2.png"));
+        };
+
         var starObj = function(x,y){//create star object
             this.x = x;
             this.y = y;
@@ -100,6 +128,7 @@ frameRate(60);
 
 
         var NPCarray = [new NPC1Obj(0,30),new NPC2Obj(100,30) ];
+        var cop = new copObj(0,200);
         var star =[];
         var insBlock = [new insBlockObj(600,350),new insBlockObj(600,450),new insBlockObj(600,550),new insBlockObj(600,650)];
         var house = new houseObj(0,250);
@@ -426,7 +455,115 @@ frameRate(60);
               }
         };
 
+        copObj.prototype.draw = function() {//draw NPC 1 object
 
+            if(this.direction === 0){
+                pushMatrix();
+                translate(this.position.x+40,this.position.y+70);
+                rotate(this.RrotateLeg);
+                image(this.NPC[4],0,0,20,20);
+                popMatrix();
+
+                pushMatrix();
+                translate(this.position.x+25,this.position.y+70);
+                rotate(this.LrotateLeg);
+                image(this.NPC[3],0,0,20,20);
+                popMatrix();
+
+
+
+                pushMatrix();
+                translate(this.position.x+40,this.position.y+50);
+                rotate(this.Rrotate);
+                image(this.NPC[2],0,0,20,20);
+                popMatrix();
+
+                image(this.NPC[0],this.position.x,this.position.y,80,80);
+
+                pushMatrix();
+                translate(this.position.x+25,this.position.y+50);
+                rotate(this.Lrotate);
+                image(this.NPC[1],-20,0,20,20);
+                popMatrix();
+            }else{
+                pushMatrix();
+                translate(this.position.x+35,this.position.y+75);
+                rotate(this.RrotateLeg);
+                image(this.NPCL[4],0,0,20,20);
+                popMatrix();
+
+                pushMatrix();
+                translate(this.position.x+20,this.position.y+75);
+                rotate(this.LrotateLeg);
+                image(this.NPCL[3],0,0,20,20);
+                popMatrix();
+
+
+
+                pushMatrix();
+                translate(this.position.x+30,this.position.y+50);
+                rotate(this.Lrotate);
+                image(this.NPCL[1],-20,0,20,20);
+                popMatrix();
+
+                image(this.NPCL[0],this.position.x,this.position.y,80,80);
+
+
+                pushMatrix();
+                translate(this.position.x+55,this.position.y+50);
+                rotate(this.Rrotate);
+                image(this.NPCL[2],0,0,20,20);
+                popMatrix();
+            }
+
+
+        };
+
+        copObj.prototype.move = function() {//ball move in arc line
+              if (this.direction === 0 ){
+                  this.Lrotate += this.Lspeed;
+                  this.Rrotate += this.Rspeed;
+                  this.LrotateLeg += this.LspeedLeg;
+                  this.RrotateLeg += this.RspeedLeg;
+                  if (this.Lrotate < -1.2 || this.Lrotate > 0){
+                      this.Lspeed = -this.Lspeed;
+                  }
+
+                  if (this.Rrotate > 1 || this.Rrotate < -0.2){
+                      this.Rspeed = -this.Rspeed;
+                  }
+
+                  if (this.LrotateLeg < -0.5 || this.LrotateLeg > 0.5){
+                      this.LspeedLeg = -this.LspeedLeg;
+                  }
+
+                  if (this.RrotateLeg > 0.5 || this.RrotateLeg < -0.5){
+                      this.RspeedLeg = -this.RspeedLeg;
+                  }
+
+              }else if (this.direction === 1)
+              {
+                  this.Lrotate += this.Lspeed;
+                  this.Rrotate += this.Rspeed;
+                  this.LrotateLeg += this.RspeedLeg;
+                  this.RrotateLeg += this.LspeedLeg;
+                  if (this.Lrotate < -1.2 || this.Lrotate > 0){
+                      this.Lspeed = -this.Lspeed;
+                  }
+
+                  if (this.Rrotate > 1 || this.Rrotate < -0.2){
+                      this.Rspeed = -this.Rspeed;
+                  }
+
+                  if (this.LrotateLeg < -0.5 || this.LrotateLeg > 0.5){
+                      this.LspeedLeg = -this.LspeedLeg;
+                  }
+
+                  if (this.RrotateLeg > 0.5 || this.RrotateLeg < -0.5){
+                      this.RspeedLeg = -this.RspeedLeg;
+                  }
+              }
+        };
         var mouseClicked = function() {
             if(start ===0){
                 if(mouseX > 600 && mouseX < 750 && mouseY > 350 && mouseY <400)
@@ -554,6 +691,8 @@ frameRate(60);
                     NPCarray[i].move();
                 }
 
+                cop.draw();
+                cop.move();
 
             }else if (start === 1){//instruction
                 background(85, 106, 163);
