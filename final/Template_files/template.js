@@ -88,7 +88,7 @@ frameRate(60);
             this.LrotateLeg = 0;
             this.RrotateLeg = 0;
 
-            this.direction =1;
+            this.direction =0;
             this.NPC.push(loadImage("Template_files/copRbody.png"));
             this.NPC.push(loadImage("Template_files/copRarm.png"));
             this.NPC.push(loadImage("Template_files/copRarm2.png"));
