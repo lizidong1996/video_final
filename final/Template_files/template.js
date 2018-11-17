@@ -102,17 +102,18 @@ frameRate(60);
             this.position = new PVector(x, y);
             this.NPC = [];
             this.NPCL = [];
-            this.Lspeed =-0.1;
-            this.Rspeed = 0.1;
+            this.Lspeed =-0.5;
+            this.Rspeed = 0.5;
             this.Lrotate = 0;
             this.Rrotate = 0;
 
-            this.LspeedLeg =-0.1;
-            this.RspeedLeg = 0.1;
+            this.LspeedLeg =-0.5;
+            this.RspeedLeg = 0.5;
             this.LrotateLeg = 0;
             this.RrotateLeg = 0;
 
             this.direction =0;
+			this.isStill = 1;
             this.NPC.push(loadImage("Template_files/blackRbody.png"));
             this.NPC.push(loadImage("Template_files/blackRarm.png"));
             this.NPC.push(loadImage("Template_files/blackRarm2.png"));
@@ -131,17 +132,18 @@ frameRate(60);
             this.position = new PVector(x, y);
             this.NPC = [];
             this.NPCL = [];
-            this.Lspeed =-0.1;
-            this.Rspeed = 0.1;
+            this.Lspeed =-0.5;
+            this.Rspeed = 0.5;
             this.Lrotate = 0;
             this.Rrotate = 0;
 
-            this.LspeedLeg =-0.1;
-            this.RspeedLeg = 0.1;
+            this.LspeedLeg =-0.5;
+            this.RspeedLeg = 0.5;
             this.LrotateLeg = 0;
             this.RrotateLeg = 0;
 
             this.direction =0;
+			this.isStill = 1;
             this.NPC.push(loadImage("Template_files/whiteRbody.png"));
             this.NPC.push(loadImage("Template_files/whiteRarm.png"));
             this.NPC.push(loadImage("Template_files/whiteRarm2.png"));
@@ -159,13 +161,13 @@ frameRate(60);
             this.position = new PVector(x, y);
             this.NPC = [];
             this.NPCL = [];
-            this.Lspeed =-0.1;
-            this.Rspeed = 0.1;
+            this.Lspeed =-0.5;
+            this.Rspeed = 0.5;
             this.Lrotate = 0;
             this.Rrotate = 0;
 
-            this.LspeedLeg =-0.1;
-            this.RspeedLeg = 0.1;
+            this.LspeedLeg =-0.5;
+            this.RspeedLeg = 0.5;
             this.LrotateLeg = 0;
             this.RrotateLeg = 0;
 
@@ -429,65 +431,74 @@ frameRate(60);
         };
 
         NPC1Obj.prototype.draw = function() {//draw NPC 1 object
+			if(this.isStill === 1){
+				this.RrotateLeg = 0;
+				this.LrotateLeg = 0;
+				this.Rrotate = 0;
+				this.Lrotate = 0;
+			}
+			
+			if(this.direction === 0){
+				pushMatrix();
+				translate(this.position.x+50,this.position.y+70);
+				rotate(this.RrotateLeg);
+				image(this.NPC[4],0,0,20,20);
+				popMatrix();
 
-            if(this.direction === 0){
-                pushMatrix();
-                translate(this.position.x+50,this.position.y+70);
-                rotate(this.RrotateLeg);
-                image(this.NPC[4],0,0,20,20);
-                popMatrix();
-
-                pushMatrix();
-                translate(this.position.x+35,this.position.y+70);
-                rotate(this.LrotateLeg);
-                image(this.NPC[3],0,0,20,20);
-                popMatrix();
-
-
-
-                pushMatrix();
-                translate(this.position.x+60,this.position.y+50);
-                rotate(this.Rrotate);
-                image(this.NPC[2],0,0,20,20);
-                popMatrix();
-
-                image(this.NPC[0],this.position.x,this.position.y,80,80);
-
-                pushMatrix();
-                translate(this.position.x+35,this.position.y+50);
-                rotate(this.Lrotate);
-                image(this.NPC[1],-20,0,20,20);
-                popMatrix();
-            }else{
-                pushMatrix();
-                translate(this.position.x+25,this.position.y+75);
-                rotate(this.RrotateLeg);
-                image(this.NPCL[4],0,0,20,20);
-                popMatrix();
-
-                pushMatrix();
-                translate(this.position.x+10,this.position.y+75);
-                rotate(this.LrotateLeg);
-                image(this.NPCL[3],0,0,20,20);
-                popMatrix();
+				pushMatrix();
+				translate(this.position.x+35,this.position.y+70);
+				rotate(this.LrotateLeg);
+				image(this.NPC[3],0,0,20,20);
+				popMatrix();
 
 
 
-                pushMatrix();
-                translate(this.position.x+20,this.position.y+50);
-                rotate(this.Lrotate);
-                image(this.NPCL[1],-20,0,20,20);
-                popMatrix();
+				pushMatrix();
+				translate(this.position.x+60,this.position.y+50);
+				rotate(this.Rrotate);
+				image(this.NPC[2],0,0,20,20);
+				popMatrix();
 
-                image(this.NPCL[0],this.position.x,this.position.y,80,80);
+				image(this.NPC[0],this.position.x,this.position.y,80,80);
+
+				pushMatrix();
+				translate(this.position.x+35,this.position.y+50);
+				rotate(this.Lrotate);
+				image(this.NPC[1],-20,0,20,20);
+				popMatrix();
+			}
+			else{
+				pushMatrix();
+				translate(this.position.x+25,this.position.y+75);
+				rotate(this.RrotateLeg);
+				image(this.NPCL[4],0,0,20,20);
+				popMatrix();
+
+				pushMatrix();
+				translate(this.position.x+10,this.position.y+75);
+				rotate(this.LrotateLeg);
+				image(this.NPCL[3],0,0,20,20);
+				popMatrix();
 
 
-                pushMatrix();
-                translate(this.position.x+45,this.position.y+50);
-                rotate(this.Rrotate);
-                image(this.NPCL[2],0,0,20,20);
-                popMatrix();
-            }
+
+				pushMatrix();
+				translate(this.position.x+20,this.position.y+50);
+				rotate(this.Lrotate);
+				image(this.NPCL[1],-20,0,20,20);
+				popMatrix();
+
+				image(this.NPCL[0],this.position.x,this.position.y,80,80);
+
+
+				pushMatrix();
+				translate(this.position.x+45,this.position.y+50);
+				rotate(this.Rrotate);
+				image(this.NPCL[2],0,0,20,20);
+				popMatrix();
+			}
+	
+            
 
 
         };
@@ -539,7 +550,12 @@ frameRate(60);
         };
 
         NPC2Obj.prototype.draw = function() {//draw NPC 1 object
-
+			if(this.isStill === 1){
+				this.RrotateLeg = 0;
+				this.LrotateLeg = 0;
+				this.Rrotate = 0;
+				this.Lrotate = 0;
+			}
             if(this.direction === 0){
                 pushMatrix();
                 translate(this.position.x+50,this.position.y+70);
@@ -787,13 +803,6 @@ frameRate(60);
                 textSize(20);
                 textFont(createFont("fantasy"));
                 text("BY:\n  Moqi Zhang\n  Jie Zhang\n  Zidong Li", 1120, 620);
-                for(var i = 0; i < NPCarray.length; i ++){
-                    NPCarray[i].draw();
-                    NPCarray[i].move();
-                }
-
-                cop.draw();
-                cop.move();
         }
 
         var drawIns = function()
@@ -954,106 +963,47 @@ frameRate(60);
         var keyPressed = function() {
             if (start === 4) {
             if (keyCode === LEFT) {
-                NPCarray[0].direction = 1;
-                NPCarray[0].Lspeed =-0.1;
-                NPCarray[0].Rspeed = 0.1;
-                NPCarray[0].Lrotate = 0;
-                NPCarray[0].Rrotate = 0;
-
-                NPCarray[0].LspeedLeg =-0.1;
-                NPCarray[0].RspeedLeg = 0.1;
-                NPCarray[0].LrotateLeg = 0;
-                NPCarray[0].RrotateLeg = 0;
-
                 players[0].direction = 1;
-                players[0].Lspeed =-0.1;
-                players[0].Rspeed = 0.1;
-                players[0].Lrotate = 0;
-                players[0].Rrotate = 0;
-
-                players[0].LspeedLeg =-0.1;
-                players[0].RspeedLeg = 0.1;
-                players[0].LrotateLeg = 0;
-                players[0].RrotateLeg = 0;
+				players[0].isStill = 0;
                 players[0].move();
-                players[0].position.x -= 2;
+                players[0].position.x -= 10;
 
             }else if (keyCode === RIGHT){
-                NPCarray[0].direction = 0;
-                NPCarray[0].Lspeed =-0.1;
-                NPCarray[0].Rspeed = 0.1;
-                NPCarray[0].Lrotate = 0;
-                NPCarray[0].Rrotate = 0;
-
-                NPCarray[0].LspeedLeg =-0.1;
-                NPCarray[0].RspeedLeg = 0.1;
-                NPCarray[0].LrotateLeg = 0;
-                NPCarray[0].RrotateLeg = 0;
-
                 players[0].direction = 0;
-                players[0].Lspeed =-0.1;
-                players[0].Rspeed = 0.1;
-                players[0].Lrotate = 0;
-                players[0].Rrotate = 0;
-
-                players[0].LspeedLeg =-0.1;
-                players[0].RspeedLeg = 0.1;
-                players[0].LrotateLeg = 0;
-                players[0].RrotateLeg = 0;
+				players[0].isStill = 0;
                 players[0].move();
-                players[0].position.x += 2;
+                players[0].position.x += 10;
             }else if (key.code === 97) {
-                NPCarray[1].direction = 1;
-                NPCarray[1].Lspeed =-0.1;
-                NPCarray[1].Rspeed = 0.1;
-                NPCarray[1].Lrotate = 0;
-                NPCarray[1].Rrotate = 0;
-
-                NPCarray[1].LspeedLeg =-0.1;
-                NPCarray[1].RspeedLeg = 0.1;
-                NPCarray[1].LrotateLeg = 0;
-                NPCarray[1].RrotateLeg = 0;
-
                 players[1].direction = 1;
-                players[1].Lspeed =-0.1;
-                players[1].Rspeed = 0.1;
-                players[1].Lrotate = 0;
-                players[1].Rrotate = 0;
-
-                players[1].LspeedLeg =-0.1;
-                players[1].RspeedLeg = 0.1;
-                players[1].LrotateLeg = 0;
-                players[1].RrotateLeg = 0;
+				players[1].isStill = 0;
                 players[1].move();
-                players[1].position.x -= 2;
+                players[1].position.x -= 10;
             }else if (key.code === 100){
-                NPCarray[1].direction = 0;
-                NPCarray[1].Lspeed =-0.1;
-                NPCarray[1].Rspeed = 0.1;
-                NPCarray[1].Lrotate = 0;
-                NPCarray[1].Rrotate = 0;
-
-                NPCarray[1].LspeedLeg =-0.1;
-                NPCarray[1].RspeedLeg = 0.1;
-                NPCarray[1].LrotateLeg = 0;
-                NPCarray[1].RrotateLeg = 0;
-
                 players[1].direction = 0;
-                players[1].Lspeed =-0.1;
-                players[1].Rspeed = 0.1;
-                players[1].Lrotate = 0;
-                players[1].Rrotate = 0;
-
-                players[1].LspeedLeg =-0.1;
-                players[1].RspeedLeg = 0.1;
-                players[1].LrotateLeg = 0;
-                players[1].RrotateLeg = 0;
+				players[1].isStill = 0;
                 players[1].move();
-                players[1].position.x += 2;
+                players[1].position.x += 10;
             }
         }
-        }
+        };
+		
+		var keyReleased = function() {
+		    if (start === 4) {
+				if (keyCode === LEFT) {
+					players[0].isStill = 1;
 
+				}else if (keyCode === RIGHT){
+					players[0].isStill = 1;
+					
+				}else if (key.code === 97) {
+					players[1].isStill = 1;
+
+				}else if (key.code === 100){
+					players[1].isStill = 1;
+
+				}
+			}
+		};
         var checkGameEnd = function()
         {
             for (var i=0; i < players.length; i++) {
@@ -1074,7 +1024,7 @@ frameRate(60);
                     }
                 }
             }
-        }
+        };
 
         // END - funtionality =========================================================================
 
@@ -1090,16 +1040,8 @@ frameRate(60);
                 fill(0, 0, 0);
                 textSize(20);
                text("BACK", 12, 37);
-
-                for(var i = 0; i < NPC.length; i ++){
-                    scale(0.7);
-                    NPC[i].draw();
-                    NPC[i].move();
-                    scale(1.45);
-                }
-
             }else if(start === 3){ // one players
-                //background(85, 106, 163);
+                background(85, 106, 163);
                 fill(255, 255, 255);
                 rect(10,20,60,20);
                 fill(0, 0, 0);
@@ -1115,6 +1057,7 @@ frameRate(60);
                 text("BACK", 12, 37);
                 drawTilemap();
                 checkGameEnd();
+
             }
             else if (start === 5) { // lose
                 background(85, 106, 163);
