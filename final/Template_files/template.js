@@ -14,9 +14,85 @@ frameRate(60);
         var NPC1points = [];
         var footpoints = [];
         var foot2points = [];
+        var walls = [];
+        var players = [];
+        var traps = [];
+        var exits = [];
+        var lights = [];
+        var players = [];
         var iterations = 0;
         var initial = 0;
+        var wallImage = loadImage("Template_files/wall.png");
 
+        // helper function
+        var checkCollision = function(x1, y1, w1, h1, x2, y2, w2, h2) {
+            if (x1 < x2 + w2 && x1 + w1 > x2)
+            {
+                if (y1 + h1 > y2 && y1 < y2 + h2)
+                {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // START - initialize objects =================================================
+        var wallObj = function(x, y)
+        {
+            this.x = x;
+            this.y = y;
+        };
+
+        var exitObj = function(x, y) {
+            this.x = x;
+            this.y = y;
+        };
+        
+        var lightObj = function(x, y) {
+            this.x = x;
+            this.y = y;
+            k = random(0, 2);
+            if (k < 1)
+            {
+                this.kind = 0; // white
+            }
+        
+            if (k >= 1)
+            {
+                this.kind = 1; // black
+            }
+            this.angle = 0;
+            this.angleSpeed = 0.02;
+        };
+
+        var initTilemap = function(tilemap) {
+            walls = [];
+            players = [];
+            traps = [];
+            exits = [];
+            lights = [];
+            for (var i = 0; i< tilemap.length; i++) {
+                for (var j = 0; j < tilemap[i].length; j++) {
+                    switch (tilemap[i][j]) {
+                        case 'w': 
+                            walls.push(new wallObj(j*40, i*40));
+                            break;
+                        case '1':
+                            players.push(new NPC1Obj(j*40, i*40));
+                            break;
+                        case '2':
+                            players.push(new NPC2Obj(j*40, i*40));
+                            break;
+                        case 'e':
+                            exits.push(new exitObj(j*40, i*40 - 40));
+                            break;    
+                        case 'l':
+                            lights.push(new lightObj(j*40, i*40));
+                            break;
+                    }
+                }
+            }
+        };
 
         var NPC1Obj = function(x,y){//create NPC 1 object
             this.position = new PVector(x, y);
@@ -125,8 +201,7 @@ frameRate(60);
             this.y = y;
         };
 
-
-
+        // END -- initialize objects ===========================================================================================
         var NPCarray = [new NPC1Obj(0,30),new NPC2Obj(100,30) ];
         var cop = new copObj(0,200);
         var star =[];
@@ -137,6 +212,99 @@ frameRate(60);
              star[j] = new starObj(random(0,1280),random(0,400));
         }
 
+        // START - draw objects =============================================================================
+        var backGroundDraw = function(w, h) {
+            stroke(0);
+            strokeWeight(1);
+            fill(143, 132, 127);
+            for (var y=0; y <= h; y+=20) {
+                for (var x=0; x <w; x+= 50) {
+                    rect(x, y, 50, 20);
+                }
+                y += 20;
+                for (var x=-25; x < w; x += 50) {
+                    rect(x, y, 50, 20);
+                }
+            }
+        };
+
+        wallObj.prototype.draw = function() {
+            image(wallImage, this.x, this.y, 40, 40);
+        };
+
+        exitObj.prototype.draw = function() {
+            fill(255, 222, 222);
+            rect(this.x, this.y, 40, 80);
+        };
+        
+        lightObj.prototype.draw = function() {
+            var xr = this.x + 20;
+            var yr = this.y;
+            fill(0);
+            ellipse(xr, yr, 5, 5);
+            pushMatrix();
+            translate(xr, yr);
+            rotate(this.angle);
+            noStroke();
+            fill(255, 213, 0);
+            var x = -20;
+            var y = 0;
+            rect(x + 12.5, y, 15, 20);
+            // 32.5 - 7.5 = 25
+            quad(x + 12.5, y + 20, x + 12.5 + 15, y + 20, x + 12.5 + 15 + 5, y + 25, x + 12.5 - 5, y + 25);
+            stroke(0);
+            line(x + 12, y + 20, x + 27.5, y + 20);
+            var xc = x + 20;
+            var yc = y + 8;
+            line(xc, yc, xc, yc + 5);
+            line(xc - 5, yc + 0.5, xc - 5, yc + 5 - 0.5);
+            line(xc + 5, yc + 0.5, xc + 5, yc + 5 - 0.5);
+            //line(xc - 9.5, yc + 1, xc - 9.5, yc + 4);
+            //line(xc + 9, yc + 1, xc + 9, yc + 4);
+            var xl = x + 12.5 - 5;
+            var yl = y + 25;
+            noStroke();
+            var r, g, b;
+            if (this.kind === 0) {
+                r = 255;
+                g = 255;
+                b = 255;
+            }
+            else {
+                r = 28;
+                g = 3;
+                b = 28;
+            }
+            fill(r, g, b, 80);
+            rect(xl, yl, 24.5, 20);
+            fill(r, g, b, 70);
+            rect(xl, yl + 20, 24.5, 10);
+            fill(r, g, b, 60);
+            rect(xl, yl + 30, 24.5, 5);
+            fill(r, g, b, 50);
+            rect(xl, yl + 35, 24.5, 2);
+            if (this.angle < (-PI/2 + 0.1) || this.angle > (PI/2 - 0.1)) {
+                this.angleSpeed = -this.angleSpeed;
+            }
+            popMatrix();
+            this.angle += this.angleSpeed;
+        };
+
+        var drawTilemap = function() {
+            for (var i=0; i<walls.length; i++) {
+                walls[i].draw();
+            }
+            for (var i=0; i<players.length; i++) {
+                players[i].draw();
+            }
+            for (var i=0; i<exits.length; i++) {
+                exits[i].draw();
+            }
+            for (var i=0; i<lights.length; i++) {
+                lights[i].draw();
+            }
+        };
+        
         var subdivide = function(m) {//subdivision function for array of points
             pNPC.splice(0, pNPC.length);
             for (var i = 0; i < m.length - 1; i++) {
@@ -228,6 +396,7 @@ frameRate(60);
             rect(this.x+1660,this.y+280,40,220);
 
         };
+
         houseObj.prototype.move = function() {//draw star object
             this.x -= 0.3;
             if(this.x < -300){
@@ -299,7 +468,7 @@ frameRate(60);
 
         };
 
-        NPC1Obj.prototype.move = function() {//ball move in arc line
+        NPC1Obj.prototype.move = function() {
               if (this.direction === 0 ){
                   this.Lrotate += this.Lspeed;
                   this.Rrotate += this.Rspeed;
@@ -564,101 +733,9 @@ frameRate(60);
                   }
               }
         };
-        var mouseClicked = function() {
-            if(start ===0){
-                if(mouseX > 600 && mouseX < 750 && mouseY > 350 && mouseY <400)
-                {
-                    start = 1;
-                }else if(mouseX > 600 && mouseX < 750 && mouseY > 450 && mouseY <500)
-                {
-                    start = 2;
-                }
-                else if(mouseX > 600 && mouseX < 750 && mouseY > 550 && mouseY <600)
-                {
-                    start = 3;
-                }
-                else if(mouseX > 600 && mouseX < 750 && mouseY > 650 && mouseY <700)
-                {
-                    start = 4;
-                }
-            }else if(start === 1){//enter instruction
-                if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
-                {
-                    start = 0;
-                }
-            }
-            else if(start === 2){//enter one player
-                if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
-                {
-                    start = 0;
-                }
-            }
-            else if(start === 3){//enter two player
-                if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
-                {
-                    start = 0;
-                }
-            }
-            else if(start === 4){//enter record
-                if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
-                {
-                    start = 0;
-                }
-            }
-        };
 
-        var keyPressed = function() {
-            if (keyCode === LEFT) {
-                NPCarray[0].direction = 1;
-                NPCarray[0].Lspeed =-0.1;
-                NPCarray[0].Rspeed = 0.1;
-                NPCarray[0].Lrotate = 0;
-                NPCarray[0].Rrotate = 0;
-
-                NPCarray[0].LspeedLeg =-0.1;
-                NPCarray[0].RspeedLeg = 0.1;
-                NPCarray[0].LrotateLeg = 0;
-                NPCarray[0].RrotateLeg = 0;
-
-            }else if (keyCode === RIGHT){
-                NPCarray[0].direction = 0;
-                NPCarray[0].Lspeed =-0.1;
-                NPCarray[0].Rspeed = 0.1;
-                NPCarray[0].Lrotate = 0;
-                NPCarray[0].Rrotate = 0;
-
-                NPCarray[0].LspeedLeg =-0.1;
-                NPCarray[0].RspeedLeg = 0.1;
-                NPCarray[0].LrotateLeg = 0;
-                NPCarray[0].RrotateLeg = 0;
-            }else if (key.code === 97) {
-                NPCarray[1].direction = 1;
-                NPCarray[1].Lspeed =-0.1;
-                NPCarray[1].Rspeed = 0.1;
-                NPCarray[1].Lrotate = 0;
-                NPCarray[1].Rrotate = 0;
-
-                NPCarray[1].LspeedLeg =-0.1;
-                NPCarray[1].RspeedLeg = 0.1;
-                NPCarray[1].LrotateLeg = 0;
-                NPCarray[1].RrotateLeg = 0;
-            }else if (key.code === 100){
-                NPCarray[1].direction = 0;
-                NPCarray[1].Lspeed =-0.1;
-                NPCarray[1].Rspeed = 0.1;
-                NPCarray[1].Lrotate = 0;
-                NPCarray[1].Rrotate = 0;
-
-                NPCarray[1].LspeedLeg =-0.1;
-                NPCarray[1].RspeedLeg = 0.1;
-                NPCarray[1].LrotateLeg = 0;
-                NPCarray[1].RrotateLeg = 0;
-            }
-        }
-
-        var draw = function() {
-            if(start===0){//start screen
-                background(12, 24, 59);
+        var drawStarting = function() {
+            background(12, 24, 59);
                 noStroke();
                 fill(255, 255, 255);
                 textFont(createFont("fantasy"));
@@ -693,9 +770,11 @@ frameRate(60);
 
                 cop.draw();
                 cop.move();
+        }
 
-            }else if (start === 1){//instruction
-                background(85, 106, 163);
+        var drawIns = function()
+        {
+            background(85, 106, 163);
                 noStroke();
                 fill(125, 148, 209);
                 rect(50,50,300,300);
@@ -747,8 +826,199 @@ frameRate(60);
                 textSize(20);
                 text("NEXT", 322, 37);
                 text("BACK", 12, 37);
+        };
+        // END - draw Objects ===================================================================================
 
-            }else if(start === 2){
+
+        // START - tilemaps ==================================
+        // 1280 * 720  ==>  32 * 18
+        var tilemap1 = [
+    "--------------------------------",
+    "-------------------------e------",
+    "------wwwwwwwwwwwwwwwwwwwwwwwwww",
+    "--------l--------l--------------",
+    "--------------t-----------------",
+    "wwwwwwwwwwwwwwwwwwwwwwww--------",
+    "--------------l-----------------",
+    "------------t--------------t----",
+    "------wwwwwwwwwwwwwwwwwwwwwwwwww",
+    "--------------------------------",
+    "------------t-------------------",
+    "wwwwwwwwwwwwwwwwwwwwwwwww-------",
+    "----------------l---------------",
+    "-------------t------------------",
+    "-------wwwwwwwwwwwwwwwwwwwwwwwww",
+    "----------------------------1-2-",
+    "--------------------------------",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
+    ];
+
+        // END - tilemaps =========================================================
+
+        // START - functionality ===================================================================
+        lightObj.prototype.found = function(x2, y2, w, h) {
+            var x1 = this.x + 7.5;
+            var y1 = this.y + 25;
+            if (checkCollision(x1, x2, 24.5, 35, x2, y2, w, h)) {
+                return true;
+            }
+            return false;
+        };
+
+        var mouseClicked = function() {
+            if(start ===0){
+                if(mouseX > 600 && mouseX < 750 && mouseY > 350 && mouseY <400)
+                {
+                    start = 1;
+                }else if(mouseX > 600 && mouseX < 750 && mouseY > 450 && mouseY <500)
+                {
+                    start = 2;
+                }
+                else if(mouseX > 600 && mouseX < 750 && mouseY > 550 && mouseY <600)
+                {
+                    start = 3;
+                }
+                else if(mouseX > 600 && mouseX < 750 && mouseY > 650 && mouseY <700)
+                {
+                    start = 4;
+                    initTilemap(tilemap1);
+                }
+            }else if(start === 1){//enter instruction
+                if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
+                {
+                    start = 0;
+                }
+            }
+            else if(start === 2){//enter
+                if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
+                {
+                    start = 0;
+                }
+            }
+            else if(start === 3){//enter
+                if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
+                {
+                    start = 0;
+                }
+            }
+            else if(start === 4){//enter record
+                if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
+                {
+                    start = 0;
+                }
+            }
+        };
+
+        var keyPressed = function() {
+            if (start === 4) {
+            if (keyCode === LEFT) {
+                NPCarray[0].direction = 1;
+                NPCarray[0].Lspeed =-0.1;
+                NPCarray[0].Rspeed = 0.1;
+                NPCarray[0].Lrotate = 0;
+                NPCarray[0].Rrotate = 0;
+
+                NPCarray[0].LspeedLeg =-0.1;
+                NPCarray[0].RspeedLeg = 0.1;
+                NPCarray[0].LrotateLeg = 0;
+                NPCarray[0].RrotateLeg = 0;
+
+                players[0].direction = 1;
+                players[0].Lspeed =-0.1;
+                players[0].Rspeed = 0.1;
+                players[0].Lrotate = 0;
+                players[0].Rrotate = 0;
+
+                players[0].LspeedLeg =-0.1;
+                players[0].RspeedLeg = 0.1;
+                players[0].LrotateLeg = 0;
+                players[0].RrotateLeg = 0;
+                players[0].move();
+                players[0].position.x -= 2;
+
+            }else if (keyCode === RIGHT){
+                NPCarray[0].direction = 0;
+                NPCarray[0].Lspeed =-0.1;
+                NPCarray[0].Rspeed = 0.1;
+                NPCarray[0].Lrotate = 0;
+                NPCarray[0].Rrotate = 0;
+
+                NPCarray[0].LspeedLeg =-0.1;
+                NPCarray[0].RspeedLeg = 0.1;
+                NPCarray[0].LrotateLeg = 0;
+                NPCarray[0].RrotateLeg = 0;
+
+                players[0].direction = 0;
+                players[0].Lspeed =-0.1;
+                players[0].Rspeed = 0.1;
+                players[0].Lrotate = 0;
+                players[0].Rrotate = 0;
+
+                players[0].LspeedLeg =-0.1;
+                players[0].RspeedLeg = 0.1;
+                players[0].LrotateLeg = 0;
+                players[0].RrotateLeg = 0;
+                players[0].move();
+                players[0].position.x += 2;
+            }else if (key.code === 97) {
+                NPCarray[1].direction = 1;
+                NPCarray[1].Lspeed =-0.1;
+                NPCarray[1].Rspeed = 0.1;
+                NPCarray[1].Lrotate = 0;
+                NPCarray[1].Rrotate = 0;
+
+                NPCarray[1].LspeedLeg =-0.1;
+                NPCarray[1].RspeedLeg = 0.1;
+                NPCarray[1].LrotateLeg = 0;
+                NPCarray[1].RrotateLeg = 0;
+
+                players[1].direction = 1;
+                players[1].Lspeed =-0.1;
+                players[1].Rspeed = 0.1;
+                players[1].Lrotate = 0;
+                players[1].Rrotate = 0;
+
+                players[1].LspeedLeg =-0.1;
+                players[1].RspeedLeg = 0.1;
+                players[1].LrotateLeg = 0;
+                players[1].RrotateLeg = 0;
+                players[1].move();
+                players[1].position.x -= 2;
+            }else if (key.code === 100){
+                NPCarray[1].direction = 0;
+                NPCarray[1].Lspeed =-0.1;
+                NPCarray[1].Rspeed = 0.1;
+                NPCarray[1].Lrotate = 0;
+                NPCarray[1].Rrotate = 0;
+
+                NPCarray[1].LspeedLeg =-0.1;
+                NPCarray[1].RspeedLeg = 0.1;
+                NPCarray[1].LrotateLeg = 0;
+                NPCarray[1].RrotateLeg = 0;
+
+                players[1].direction = 0;
+                players[1].Lspeed =-0.1;
+                players[1].Rspeed = 0.1;
+                players[1].Lrotate = 0;
+                players[1].Rrotate = 0;
+
+                players[1].LspeedLeg =-0.1;
+                players[1].RspeedLeg = 0.1;
+                players[1].LrotateLeg = 0;
+                players[1].RrotateLeg = 0;
+                players[1].move();
+                players[1].position.x += 2;
+            }
+        }
+        }
+        // END - funtionality =========================================================================
+
+        var draw = function() {
+            if(start===0){//start screen
+                drawStarting();
+            }else if (start === 1){//instruction
+                drawIns();
+            }else if(start === 2){ 
                 background(85, 106, 163);
                 fill(255, 255, 255);
                 rect(10,20,60,20);
@@ -763,8 +1033,8 @@ frameRate(60);
                     scale(1.45);
                 }
 
-            }else if(start === 3){
-                background(85, 106, 163);
+            }else if(start === 3){ // one players
+                //background(85, 106, 163);
                 fill(255, 255, 255);
                 rect(10,20,60,20);
                 fill(0, 0, 0);
@@ -772,11 +1042,13 @@ frameRate(60);
                 text("BACK", 12, 37);
             }else if(start === 4){
                 background(85, 106, 163);
+                backGroundDraw(1280, 720);
                 fill(255, 255, 255);
                 rect(10,20,60,20);
                 fill(0, 0, 0);
                 textSize(20);
                 text("BACK", 12, 37);
+                drawTilemap();
             }
 
         };
