@@ -338,9 +338,6 @@ frameRate(60);
 					players[i].collisionCheck();
 					
 				}
-			
-				//players[0].applyForce(player[0].upForce);
-				//players[0].update();
                 players[i].draw();
             }
             for (var i=0; i<exits.length; i++) {
@@ -541,12 +538,12 @@ frameRate(60);
 				if(checkCollision(this.position.x,this.position.y,40,80,walls[i].x,walls[i].y,40,40)){
 					//this.velocity.set(0,0);
 					//gravity.set(0,0);
-					if((this.position.y+81)>walls[i].y){
+					if((this.position.y+80)>walls[i].y){
 						this.acceleration.set(0,0);
 						this.isJumped = 0;
 						this.isCollided = 1;
 					}
-					if((this.position.y)<walls[i].y+41){
+					if((this.position.y)<walls[i].y+40){
 						//text("back",200,200);
 						this.velocity.set(0,0);
 					}
@@ -615,7 +612,6 @@ frameRate(60);
 						this.isCollided = 1;
 					}
 					if((this.position.y)<walls[i].y+41){
-						//text("back",200,200);
 						this.velocity.set(0,0);
 					}
 					
@@ -879,7 +875,7 @@ frameRate(60);
                 text("Instruction", 610, 380);
                 text("Record", 630, 480);
                 textSize(26);
-                text("ONE Player", 600, 580);
+                //text("ONE Player", 600, 580);
                 text("TWO Player", 600, 680);
                 fill(255, 255, 255);
                 textSize(20);
@@ -1057,10 +1053,12 @@ frameRate(60);
                 players[0].position.x += 10;
             }
 			else if(keyCode === UP){
-				players[0].applyForce(players[0].upForce);
+				if (players[0].isJumped === 0){
+					players[0].applyForce(players[0].upForce);
+				}
+				
 				players[0].isJumped = 1;
 				gravity.set(0,0.1);
-				NPC1jump = 1;
 			}
 			else if (key.code === 97) {
                 players[1].direction = 1;
@@ -1074,10 +1072,11 @@ frameRate(60);
                 players[1].position.x += 10;
             }
 			else if (key.code === 119){
-				players[1].applyForce(players[1].upForce);
+				if(players[1].isJumped === 0){
+					players[1].applyForce(players[1].upForce);
+				}
 				players[1].isJumped = 1;
 				gravity.set(0,0.1);
-				NPC2jump = 1;
 			}
 				
         }
