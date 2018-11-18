@@ -4,9 +4,12 @@ frameRate(60);
 
        var NPC1 = [];
        var block = [];
-
+		var keyArray = [];
         angleMode = "radians";
-
+		var NPC1jump = 0;
+		var NPC2jump = 0;
+		var NPC1still = 1;
+		var NPC2still = 1;
         //Title : Black & White
         //Member : Moqi Zhang, Jie Zhang, Zidong Li
         var start = 0;
@@ -19,7 +22,6 @@ frameRate(60);
         var traps = [];
         var exits = [];
         var lights = [];
-        var players = [];
         var iterations = 0;
         var initial = 0;
         var wallImage = loadImage("Template_files/wall.png");
@@ -114,6 +116,11 @@ frameRate(60);
 
             this.direction =0;
 			this.isStill = 1;
+			this.isJumped = 0;
+			this.velocity = new PVector(0, 0);
+			this.acceleration = new PVector(0, 0);
+			this.force = new PVector(0, 0);
+			this.upForce = new PVector(0,-6.5);
             this.NPC.push(loadImage("Template_files/blackRbody.png"));
             this.NPC.push(loadImage("Template_files/blackRarm.png"));
             this.NPC.push(loadImage("Template_files/blackRarm2.png"));
@@ -144,6 +151,11 @@ frameRate(60);
 
             this.direction =0;
 			this.isStill = 1;
+			this.velocity = new PVector(0, 0);
+			this.acceleration = new PVector(0, 0);
+			this.force = new PVector(0, 0);
+			this.upForce = new PVector(0,-6.5);
+			this.isJumped = 0;
             this.NPC.push(loadImage("Template_files/whiteRbody.png"));
             this.NPC.push(loadImage("Template_files/whiteRarm.png"));
             this.NPC.push(loadImage("Template_files/whiteRarm2.png"));
@@ -313,7 +325,6 @@ frameRate(60);
              //   this.angleSpeed = -this.angleSpeed;
             //}
             popMatrix();
-            //this.angle += this.angleSpeed;
         };
 
         var drawTilemap = function() {
@@ -321,6 +332,13 @@ frameRate(60);
                 walls[i].draw();
             }
             for (var i=0; i<players.length; i++) {
+				if(players[i].isJumped === 1){
+					players[i].update();
+					
+				}
+				players[i].collisionCheck();
+				//players[0].applyForce(player[0].upForce);
+				//players[0].update();
                 players[i].draw();
             }
             for (var i=0; i<exits.length; i++) {
@@ -430,6 +448,20 @@ frameRate(60);
             }
         };
 
+		NPC1Obj.prototype.applyForce = function(force){
+			this.acceleration.add(force);
+		};
+		var gravity = new PVector(0, 0.1);
+		NPC1Obj.prototype.update = function() {
+			this.applyForce(gravity);
+			//this.acceleration.add(force);
+			var airFriction = PVector.mult(this.velocity,-0.01);
+			this.applyForce(airFriction);
+			this.velocity.add(this.acceleration);
+			this.position.add(this.velocity);
+			this.acceleration.set(0, 0);
+			//this.velocity.set(0,0);
+		};
         NPC1Obj.prototype.draw = function() {//draw NPC 1 object
 			if(this.isStill === 1){
 				this.RrotateLeg = 0;
@@ -502,7 +534,16 @@ frameRate(60);
 
 
         };
-
+		NPC1Obj.prototype.collisionCheck = function(){
+			for(var i = 0; i<walls.lenth; i++){
+				if(dist(this.position.x,this.position.y+4,walls[i].x,walls[i].y)<3){
+					this.velocity.set(0,0);
+					this.acceleration.set(0,0);
+					//this.isJumped = 0;
+				}
+			}
+			
+		};
         NPC1Obj.prototype.move = function() {
               if (this.direction === 0 ){
                   this.Lrotate += this.Lspeed;
@@ -549,7 +590,34 @@ frameRate(60);
               }
         };
 
-        NPC2Obj.prototype.draw = function() {//draw NPC 1 object
+        NPC2Obj.prototype.applyForce = function(force){
+			this.acceleration.add(force);
+		};
+		NPC2Obj.prototype.collisionCheck = function(){
+			for(var i = 0; i<walls.lenth; i++){
+				if(dist(this.position.x,this.position.y-10,walls[i].x,walls[i].y)<0){
+					this.velocity.set(0,0);
+					//this.acceleration.set(0,0);
+					//this.isJumped = 0;
+				}
+				if(dist(this.position.x,this.position.y+20,walls[i].x,walls[i].y)<0){
+					this.velocity.set(0,0);
+					gravity.set(0,0);
+					this.acceleration.set(0,0);
+					//this.isJumped = 0;
+				}
+			}
+			
+		};
+		NPC2Obj.prototype.update = function() {
+			this.applyForce(gravity);
+			var airFriction = PVector.mult(this.velocity,-0.01);
+			this.applyForce(airFriction);
+			this.velocity.add(this.acceleration);
+			this.position.add(this.velocity);
+			this.acceleration.set(0, 0);
+		};
+		NPC2Obj.prototype.draw = function() {//draw NPC 1 object
 			if(this.isStill === 1){
 				this.RrotateLeg = 0;
 				this.LrotateLeg = 0;
@@ -961,48 +1029,13 @@ frameRate(60);
         };
 
         var keyPressed = function() {
-            if (start === 4) {
-            if (keyCode === LEFT) {
-                players[0].direction = 1;
-				players[0].isStill = 0;
-                players[0].move();
-                players[0].position.x -= 10;
-
-            }else if (keyCode === RIGHT){
-                players[0].direction = 0;
-				players[0].isStill = 0;
-                players[0].move();
-                players[0].position.x += 10;
-            }else if (key.code === 97) {
-                players[1].direction = 1;
-				players[1].isStill = 0;
-                players[1].move();
-                players[1].position.x -= 10;
-            }else if (key.code === 100){
-                players[1].direction = 0;
-				players[1].isStill = 0;
-                players[1].move();
-                players[1].position.x += 10;
-            }
-        }
+			keyArray[keyCode] = 1; 
+			keyArray[key.code] = 1;
         };
 		
 		var keyReleased = function() {
-		    if (start === 4) {
-				if (keyCode === LEFT) {
-					players[0].isStill = 1;
-
-				}else if (keyCode === RIGHT){
-					players[0].isStill = 1;
-					
-				}else if (key.code === 97) {
-					players[1].isStill = 1;
-
-				}else if (key.code === 100){
-					players[1].isStill = 1;
-
-				}
-			}
+			keyArray[keyCode] = 0;
+			keyArray[key.code] = 0;
 		};
         var checkGameEnd = function()
         {
@@ -1055,9 +1088,73 @@ frameRate(60);
                 fill(0, 0, 0);
                 textSize(20);
                 text("BACK", 12, 37);
+				if (keyArray[LEFT]===1) {
+					players[0].direction = 1;
+					players[0].isStill = 0;
+					players[0].move();
+					players[0].position.x -= 10;
+
+				}else if (keyArray[RIGHT] === 1){
+					players[0].direction = 0;
+					players[0].isStill = 0;
+					players[0].move();
+					players[0].position.x += 10;
+				}
+				else if(keyArray[UP] === 1 && NPC1jump === 0){
+					players[0].applyForce(players[0].upForce);
+					players[0].isJumped = 1;
+					gravity.set(0,0.1);
+					NPC1jump = 1;
+				}
+				else if (keyArray[97] === 1) {
+					players[1].direction = 1;
+					players[1].isStill = 0;
+					players[1].move();
+					players[1].position.x -= 10;
+				}else if (keyArray[100] === 1){
+					players[1].direction = 0;
+					players[1].isStill = 0;
+					players[1].move();
+					players[1].position.x += 10;
+				}
+				else if (keyArray[119] === 1 && NPC2jump === 0){
+					players[1].applyForce(players[1].upForce);
+					players[1].isJumped = 1;
+					gravity.set(0,0.1);
+					NPC2jump = 1;
+				}
+				
                 drawTilemap();
                 checkGameEnd();
+				if (keyArray[LEFT]===0) {
+					players[0].isStill = 1;
 
+				}else if (keyArray[RIGHT] === 0){
+					players[0].isStill = 1;
+					
+				}
+				else if (keyArray[UP] === 0 ){
+					players[0].isStill = 1;
+					players[0].isJumped = 0;
+					NPC1jump = 0;
+					players[0].acceleration.set(0,0);
+					players[0].velocity.set(0,0);
+				}else if (keyArray[97] === 0) {
+					players[1].isStill = 1;
+
+				}else if (keyArray[100] === 0){
+					players[1].isStill = 1;
+
+				}
+				
+				else if (keyArray[119] === 0){
+					players[1].isStill = 1;
+					players[1].isJumped = 0;
+					NPC2jump = 0;
+					players[1].acceleration.set(0,0);
+					players[1].velocity.set(0,0);
+				}
+				players[1].collisionCheck();
             }
             else if (start === 5) { // lose
                 background(85, 106, 163);
