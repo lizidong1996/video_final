@@ -113,14 +113,14 @@ frameRate(60);
             this.RspeedLeg = 0.5;
             this.LrotateLeg = 0;
             this.RrotateLeg = 0;
-
+			this.isCollided = 0;
             this.direction =0;
 			this.isStill = 1;
 			this.isJumped = 0;
 			this.velocity = new PVector(0, 0);
 			this.acceleration = new PVector(0, 0);
 			this.force = new PVector(0, 0);
-			this.upForce = new PVector(0,-6.5);
+			this.upForce = new PVector(0,-3.8);
             this.NPC.push(loadImage("Template_files/blackRbody.png"));
             this.NPC.push(loadImage("Template_files/blackRarm.png"));
             this.NPC.push(loadImage("Template_files/blackRarm2.png"));
@@ -148,13 +148,13 @@ frameRate(60);
             this.RspeedLeg = 0.5;
             this.LrotateLeg = 0;
             this.RrotateLeg = 0;
-
+			this.isCollided = 0;
             this.direction =0;
 			this.isStill = 1;
 			this.velocity = new PVector(0, 0);
 			this.acceleration = new PVector(0, 0);
 			this.force = new PVector(0, 0);
-			this.upForce = new PVector(0,-6.5);
+			this.upForce = new PVector(0,-3.8);
 			this.isJumped = 0;
             this.NPC.push(loadImage("Template_files/whiteRbody.png"));
             this.NPC.push(loadImage("Template_files/whiteRarm.png"));
@@ -332,11 +332,13 @@ frameRate(60);
                 walls[i].draw();
             }
             for (var i=0; i<players.length; i++) {
+
 				if(players[i].isJumped === 1){
 					players[i].update();
+					players[i].collisionCheck();
 					
 				}
-				players[i].collisionCheck();
+			
 				//players[0].applyForce(player[0].upForce);
 				//players[0].update();
                 players[i].draw();
@@ -535,11 +537,20 @@ frameRate(60);
 
         };
 		NPC1Obj.prototype.collisionCheck = function(){
-			for(var i = 0; i<walls.lenth; i++){
-				if(dist(this.position.x,this.position.y+4,walls[i].x,walls[i].y)<3){
-					this.velocity.set(0,0);
-					this.acceleration.set(0,0);
-					//this.isJumped = 0;
+			for(var i = 0; i<walls.length; i++){
+				if(checkCollision(this.position.x,this.position.y,40,80,walls[i].x,walls[i].y,40,40)){
+					//this.velocity.set(0,0);
+					//gravity.set(0,0);
+					if((this.position.y+81)>walls[i].y){
+						this.acceleration.set(0,0);
+						this.isJumped = 0;
+						this.isCollided = 1;
+					}
+					if((this.position.y)<walls[i].y+41){
+						//text("back",200,200);
+						this.velocity.set(0,0);
+					}
+					
 				}
 			}
 			
@@ -594,17 +605,20 @@ frameRate(60);
 			this.acceleration.add(force);
 		};
 		NPC2Obj.prototype.collisionCheck = function(){
-			for(var i = 0; i<walls.lenth; i++){
-				if(dist(this.position.x,this.position.y-10,walls[i].x,walls[i].y)<0){
-					this.velocity.set(0,0);
-					//this.acceleration.set(0,0);
-					//this.isJumped = 0;
-				}
-				if(dist(this.position.x,this.position.y+20,walls[i].x,walls[i].y)<0){
-					this.velocity.set(0,0);
-					gravity.set(0,0);
-					this.acceleration.set(0,0);
-					//this.isJumped = 0;
+			for(var i = 0; i<walls.length; i++){
+				if(checkCollision(this.position.x,this.position.y,40,80,walls[i].x,walls[i].y,40,40)){
+					//this.velocity.set(0,0);
+					//gravity.set(0,0);
+					if((this.position.y+81)>walls[i].y){
+						this.acceleration.set(0,0);
+						this.isJumped = 0;
+						this.isCollided = 1;
+					}
+					if((this.position.y)<walls[i].y+41){
+						//text("back",200,200);
+						this.velocity.set(0,0);
+					}
+					
 				}
 			}
 			
@@ -1029,14 +1043,77 @@ frameRate(60);
         };
 
         var keyPressed = function() {
-			keyArray[keyCode] = 1; 
-			keyArray[key.code] = 1;
+			if (start === 4) {
+            if (keyCode === LEFT) {
+                players[0].direction = 1;
+				players[0].isStill = 0;
+                players[0].move();
+                players[0].position.x -= 10;
+
+            }else if (keyCode === RIGHT){
+                players[0].direction = 0;
+				players[0].isStill = 0;
+                players[0].move();
+                players[0].position.x += 10;
+            }
+			else if(keyCode === UP){
+				players[0].applyForce(players[0].upForce);
+				players[0].isJumped = 1;
+				gravity.set(0,0.1);
+				NPC1jump = 1;
+			}
+			else if (key.code === 97) {
+                players[1].direction = 1;
+				players[1].isStill = 0;
+                players[1].move();
+                players[1].position.x -= 10;
+            }else if (key.code === 100){
+                players[1].direction = 0;
+				players[1].isStill = 0;
+                players[1].move();
+                players[1].position.x += 10;
+            }
+			else if (key.code === 119){
+				players[1].applyForce(players[1].upForce);
+				players[1].isJumped = 1;
+				gravity.set(0,0.1);
+				NPC2jump = 1;
+			}
+				
+        }
         };
 		
 		var keyReleased = function() {
-			keyArray[keyCode] = 0;
-			keyArray[key.code] = 0;
-		};
+		    if (start === 4) {
+				if (keyCode === LEFT) {
+					players[0].isStill = 1;
+
+				}else if (keyCode === RIGHT){
+					players[0].isStill = 1;
+					
+				}else if (key.code === 97) {
+					players[1].isStill = 1;
+
+				}else if (key.code === 100){
+					players[1].isStill = 1;
+
+				}
+				else if (keyCode === UP){
+					players[0].isStill = 1;
+					NPC1jump = 0;
+					//players[0].acceleration.set(0,0);
+					//players[0].velocity.set(0,0);
+				}
+				else if (key.code === 119){
+					players[1].isStill = 1;
+					NPC2jump = 0;
+					//players[1].acceleration.set(0,0);
+					//players[1].velocity.set(0,0);
+				}
+			}
+        };
+		
+
         var checkGameEnd = function()
         {
             for (var i=0; i < players.length; i++) {
@@ -1088,73 +1165,8 @@ frameRate(60);
                 fill(0, 0, 0);
                 textSize(20);
                 text("BACK", 12, 37);
-				if (keyArray[LEFT]===1) {
-					players[0].direction = 1;
-					players[0].isStill = 0;
-					players[0].move();
-					players[0].position.x -= 10;
-
-				}else if (keyArray[RIGHT] === 1){
-					players[0].direction = 0;
-					players[0].isStill = 0;
-					players[0].move();
-					players[0].position.x += 10;
-				}
-				else if(keyArray[UP] === 1 && NPC1jump === 0){
-					players[0].applyForce(players[0].upForce);
-					players[0].isJumped = 1;
-					gravity.set(0,0.1);
-					NPC1jump = 1;
-				}
-				else if (keyArray[97] === 1) {
-					players[1].direction = 1;
-					players[1].isStill = 0;
-					players[1].move();
-					players[1].position.x -= 10;
-				}else if (keyArray[100] === 1){
-					players[1].direction = 0;
-					players[1].isStill = 0;
-					players[1].move();
-					players[1].position.x += 10;
-				}
-				else if (keyArray[119] === 1 && NPC2jump === 0){
-					players[1].applyForce(players[1].upForce);
-					players[1].isJumped = 1;
-					gravity.set(0,0.1);
-					NPC2jump = 1;
-				}
-				
                 drawTilemap();
                 checkGameEnd();
-				if (keyArray[LEFT]===0) {
-					players[0].isStill = 1;
-
-				}else if (keyArray[RIGHT] === 0){
-					players[0].isStill = 1;
-					
-				}
-				else if (keyArray[UP] === 0 ){
-					players[0].isStill = 1;
-					players[0].isJumped = 0;
-					NPC1jump = 0;
-					players[0].acceleration.set(0,0);
-					players[0].velocity.set(0,0);
-				}else if (keyArray[97] === 0) {
-					players[1].isStill = 1;
-
-				}else if (keyArray[100] === 0){
-					players[1].isStill = 1;
-
-				}
-				
-				else if (keyArray[119] === 0){
-					players[1].isStill = 1;
-					players[1].isJumped = 0;
-					NPC2jump = 0;
-					players[1].acceleration.set(0,0);
-					players[1].velocity.set(0,0);
-				}
-				players[1].collisionCheck();
             }
             else if (start === 5) { // lose
                 background(85, 106, 163);
