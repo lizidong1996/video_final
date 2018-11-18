@@ -536,9 +536,11 @@ frameRate(60);
         };
 		NPC1Obj.prototype.collisionCheck = function(){
 			for(var i = 0; i<walls.lenth; i++){
-				if(dist(this.position.x,this.position.y+4,walls[i].x,walls[i].y)<3){
-					this.velocity.set(0,0);
-					this.acceleration.set(0,0);
+				if(checkCollision(walls[i].x, walls[i].y, 40, 40, this.x, this.y, 40, 80)){
+                    this.velocity.y = 0;
+                    if (walls[i].y < this.y + 80) {
+                        this.acceleration.set(0, 0);
+                    }
 					//this.isJumped = 0;
 				}
 			}
