@@ -32,6 +32,7 @@ frameRate(60);
         var alienChar = 0;
         var prison_image = [];
         var cloud= random(50,100);
+        var mapWidth, mapHeight;
 
         //*************************add ending and merchant****************
         var carImage = [];
@@ -134,8 +135,13 @@ frameRate(60);
             traps = [];
             exits = [];
             lights = [];
+            var w = 0;
+            var h = 0;
             for (var i = 0; i< tilemap.length; i++) {
+                h++;
+                w = 0;
                 for (var j = 0; j < tilemap[i].length; j++) {
+                    w++;
                     switch (tilemap[i][j]) {
                         case 'w': 
                             walls.push(new wallObj(j*40, i*40));
@@ -152,6 +158,8 @@ frameRate(60);
                     }
                 }
             }
+            mapHeight = h;
+            mapWidth = w;
         };
 
         var NPC1Obj = function(x,y){//create NPC 1 object
@@ -685,7 +693,42 @@ frameRate(60);
             popMatrix();
         };
 
+        // scroll
+    var moveX = function() {
+        var player = players[0];
+        var moveX;
+        var scW = 720;
+        if (player.position.x < scW << 1) {
+            moveX = 0;
+        }
+        else if (player.position.x > mapWidth - (scW << 1)) {
+            moveX = -mapWidth + scW;
+        }
+        else {
+            moveX = scW << 1 - player.position.x ;
+        }
+        return moveX;
+    };
+    
+    var moveY = function() {
+        var player = players[0];
+        var moveY;
+        var scH = 1280;
+        if (player.position.y < scH << 1) {
+            moveY = 0;
+        }
+        else if (player.position.y > mapHeight - (scH << 1)) {
+            moveY = -mapH + scH;
+        }
+        else {
+            moveY = scH << 1 - player.position.y;
+        }
+        return moveY;
+    };
+
         var drawTilemap = function() {
+            pushMatrix();
+            translate (moveX(), moveY());
             for (var i=0; i<walls.length; i++) {
                 walls[i].draw();
             }
@@ -695,6 +738,7 @@ frameRate(60);
             for (var i=0; i<lights.length; i++) {
                 lights[i].draw();
             }
+            popMatrix();
         };
         
         var subdivide = function(m) {//subdivision function for array of points
@@ -798,8 +842,6 @@ frameRate(60);
 
 		NPC1Obj.prototype.update = function() {
             var side = this.sideCheck(this.fallingSpeed);
-            //console.log(side);
-            //console.log(this.position.y);
             if (side === 2) {
                 // not falling
             }
@@ -894,7 +936,6 @@ frameRate(60);
                         //    return 1
                         //}
                         if (botY > walls[i].y && botY < walls[i].y + 40) {
-                            //console.log(walls[i].y)
                             this.position.y = walls[i].y - this.height;
                             return 2; // bot
                         }
@@ -920,7 +961,6 @@ frameRate(60);
               var speed = 10;
               if (this.direction === 0 ){
                   
-                console.log(this.position.x);
                   for (var i = 0; i < walls.length; i++) {
                       if (checkCollision(this.position.x + speed, this.position.y, this.width, this.height, walls[i].x, walls[i].y, 40, 40)) {
                           this.isStill = 1;
@@ -953,7 +993,6 @@ frameRate(60);
               }
               else if (this.direction === 1)
               {
-                console.log(this.position.x);
                 for (var i = 0; i < walls.length; i++) {
                     if (checkCollision(this.position.x - speed, this.position.y, this.width, this.height, walls[i].x, walls[i].y, 40, 40)) {
                         this.isStill = 1;
@@ -994,8 +1033,6 @@ frameRate(60);
                this.position.y -= this.jumpSpeed;
                this.h += this.jumpSpeed;
                if (this.h >= this.maxHeight || this.sideCheck(-2) === 1) {
-                   console.log(this.h);
-                   console.log(this.position.y)
                    this.isJumped = 3;
                }
              }
@@ -1214,6 +1251,12 @@ frameRate(60);
                 }
             }
             else if(start === 5){//enter record
+                if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
+                {
+                    start = 0;
+                }
+            }
+            else if(start === 6){//enter record
                 if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
                 {
                     start = 0;
