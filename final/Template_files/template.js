@@ -135,13 +135,10 @@ frameRate(60);
             traps = [];
             exits = [];
             lights = [];
-            var w = 0;
-            var h = 0;
+            var w = tilemap[0].length;
+            var h = tilemap.length;
             for (var i = 0; i< tilemap.length; i++) {
-                h++;
-                w = 0;
                 for (var j = 0; j < tilemap[i].length; j++) {
-                    w++;
                     switch (tilemap[i][j]) {
                         case 'w': 
                             walls.push(new wallObj(j*40, i*40));
@@ -158,8 +155,8 @@ frameRate(60);
                     }
                 }
             }
-            mapHeight = h;
-            mapWidth = w;
+            mapHeight = h * 40;
+            mapWidth = w * 40;
         };
 
         var NPC1Obj = function(x,y){//create NPC 1 object
@@ -605,17 +602,19 @@ frameRate(60);
 
 
 
-        var backGroundDraw = function(w, h) {
+        var backGroundDraw = function(w1, h1) {
             stroke(0);
             strokeWeight(1);
             fill(143, 132, 127);
-            for (var y=0; y <= h; y+=20) {
-                for (var x=0; x <w; x+= 50) {
-                    rect(x, y, 50, 20);
+            var w = 130;
+            var h = 40;
+            for (var y=0; y <= h1; y+=h) {
+                for (var x=0; x <w1; x+= w) {
+                    rect(x, y, w, h);
                 }
-                y += 20;
-                for (var x=-25; x < w; x += 50) {
-                    rect(x, y, 50, 20);
+                y += h;
+                for (var x=-w/2; x < w1; x += w) {
+                    rect(x, y, w, h);
                 }
             }
         };
@@ -697,15 +696,15 @@ frameRate(60);
     var moveX = function() {
         var player = players[0];
         var moveX;
-        var scW = 720;
-        if (player.position.x < scW << 1) {
+        var scW = 1280;
+        if (player.position.x < scW / 2) {
             moveX = 0;
         }
-        else if (player.position.x > mapWidth - (scW << 1)) {
+        else if (player.position.x > mapWidth - (scW / 2)) {
             moveX = -mapWidth + scW;
         }
         else {
-            moveX = scW << 1 - player.position.x ;
+            moveX = scW / 2 - player.position.x ;
         }
         return moveX;
     };
@@ -713,22 +712,20 @@ frameRate(60);
     var moveY = function() {
         var player = players[0];
         var moveY;
-        var scH = 1280;
-        if (player.position.y < scH << 1) {
+        var scH = 720;
+        if (player.position.y < scH / 2) {
             moveY = 0;
         }
-        else if (player.position.y > mapHeight - (scH << 1)) {
-            moveY = -mapH + scH;
+        else if (player.position.y > mapHeight - scH / 2) {
+            moveY = -mapHeight + scH;
         }
         else {
-            moveY = scH << 1 - player.position.y;
+            moveY = scH / 2 - player.position.y;
         }
         return moveY;
     };
 
         var drawTilemap = function() {
-            pushMatrix();
-            translate (moveX(), moveY());
             for (var i=0; i<walls.length; i++) {
                 walls[i].draw();
             }
@@ -738,7 +735,6 @@ frameRate(60);
             for (var i=0; i<lights.length; i++) {
                 lights[i].draw();
             }
-            popMatrix();
         };
         
         var subdivide = function(m) {//subdivision function for array of points
@@ -1161,6 +1157,8 @@ frameRate(60);
         // START - tilemaps ==================================
         // 1280 * 720  ==>  32 * 18
         var tilemap1 = [
+            "w-------------------------e----w",
+            "w-------------------------e----w",
     "w------------------------------w",
     "w------------------------------w",
     "w------------------------------w",
@@ -1179,6 +1177,37 @@ frameRate(60);
     "w---------------------------1--w",
     "w------------------------------w",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
+    ];
+
+    var tilemap2 = [
+        "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+        "w--------------------------------------------------------------w",
+        "w-------e------------------------------------------------------w",
+        "w--------------------------------------------------------------w",
+        "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww----------------w",
+        "w--------------------------------------------------------------w",
+        "w--------------------------------------------------------------w",
+        "w-------------------------------------------------------wwwwwwww",
+        "w--------------------------------------------------------------w",
+        "w----------------C---------------------------------------------w",
+        "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww---------------w",
+        "w--------------------------------------------------------------w",
+        "w--------------------------------------------------------------w",
+        "w-------------------------------------------------------wwwwwwww",
+        "w--------------------------------------------------------------w",
+        "w----------------C---------------------------------------------w",
+        "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww---------------w",
+        "w--------------------------------------------------------------w",
+        "w--------------------------------------------------------------w",
+        "w---------------------------------A----------------------------w",
+        "w------------------------------wwwww------------wwwww----------w",
+        "w--------------------------------------------------wwwwww------w",
+        "w--------------------------------------------------------------w",
+        "w--------------------------------------------------------------w",
+        "w-1---------------------wwwwwwwwwwwwwww--------------------wwwww",
+        "w----------------------www-----------B------------------wwwwwwww",
+        "w--------------------wwwww----A--------------------wwwwwwwwwwwww",
+        "wwwwwwwDDDDwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
     ];
 
         // END - tilemaps =========================================================
@@ -1224,7 +1253,7 @@ frameRate(60);
                 else if(mouseX > 600 && mouseX < 750 && mouseY > 650 && mouseY <700)
                 {
                     start = 4;
-                    initTilemap(tilemap1);
+                    initTilemap(tilemap2);
                 }
             }else if(start === 1){//enter instruction
                 if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
@@ -1356,8 +1385,10 @@ frameRate(60);
                 textSize(20);
                text("BACK", 12, 37);
             }else if(start === 4){//******************add merchant
-                background(85, 106, 163);
-                backGroundDraw(1280, 720);
+                pushMatrix();
+                translate(moveX(), moveY())
+                background(143, 132, 127);
+                backGroundDraw(mapWidth, mapHeight);
                 inGameUpdate();
                 drawTilemap();
                 players[0].draw();
