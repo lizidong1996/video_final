@@ -22,7 +22,7 @@ frameRate(60);
         var iterations = 0;
         var initial = 0;
         var wallImage = loadImage("Template_files/wall.png");
-        //*******add new******
+
         var start = 10;//starting at start ===10, that is starting video
         var startplayer=[];
          var endplayer=[];
@@ -32,7 +32,11 @@ frameRate(60);
         var alienChar = 0;
         var prison_image = [];
         var cloud= random(50,100);
-        //*******add new******
+
+        //*************************add ending and merchant****************
+        var carImage = [];
+        var merchant =[];
+        //*************************add ending and merchant****************
 
         // helper function
         var checkCollision = function(x1, y1, w1, h1, x2, y2, w2, h2) {
@@ -48,7 +52,7 @@ frameRate(60);
 
         // START - initialize objects =================================================
         // starting video stuff------------------------------------------------------
-        //*************************add new***********************************************
+
         var videoPlayer1Obj = function(x,y){//create NPC 1 object
             this.position = new PVector(x, y);
             this.NPC = [];
@@ -62,12 +66,28 @@ frameRate(60);
             this.NPCL.push(loadImage("Template_files/cop.png"));
 
         };
+
         var prisonObj = function(x,y){//create NPC 1 object
             this.position = new PVector(x, y);
             this.png=[];
             this.png.push(loadImage("Template_files/prison.png"));
 
         };
+
+        //*************************add ending and merchant****************
+        var carObj = function(x,y){//create NPC 1 object
+            this.position = new PVector(x, y);
+            this.png=[];
+            this.png.push(loadImage("Template_files/helicopter.png"));//This picture cited fromhttp://getdrawings.com/military-helicopter-clipart#military-helicopter-clipart-25.png
+        };
+
+        var merchantObj = function(x,y){//create NPC 1 object
+            this.position = new PVector(x, y);
+            this.NPC = [];
+            this.NPC.push(loadImage("Template_files/merchant.png"));
+        };
+        //*************************add ending and merchant****************
+
         var particleObj = function(x, y) {
             this.position = new PVector(x, y);
             //this.velocity = new PVector(random(-0.5, 0.5), random(-0.5, 0.5));	// cartesian
@@ -85,7 +105,7 @@ frameRate(60);
             this.inFlight = 2;
             this.char=s;
         };
-        //*************************add new***********************************************
+
         // end stating-------------------------------------------------
         var wallObj = function(x, y)
         {
@@ -227,13 +247,23 @@ frameRate(60);
         };
 
         // END -- initialize objects ===========================================================================================
-        //*************************add new***********************************************
+
         var insBlock = [new insBlockObj(600,450),new insBlockObj(600,550),new insBlockObj(600,650)];
         var house = new houseObj(0,250);
         startplayer=[new videoPlayer1Obj(0,400),new videoPlayer2Obj(1050,400)];
-        endplayer=[new videoPlayer1Obj(200,340),new videoPlayer2Obj(750,340)];
+
+        var winplayer=[new videoPlayer1Obj(540,250)];
         prison_image = [new prisonObj(100,250)];
-        //*************************add new***********************************************
+
+
+
+        //***************************add ending and merchant**********************************************
+        endplayer=[new videoPlayer1Obj(200,340),new videoPlayer2Obj(750,340)];
+        carImage = [new carObj(200,-100)];
+
+        //***************************add ending and merchant**********************************************
+
+
         var NPCarray = [new NPC1Obj(0,30)];
         var cop = new copObj(0,200);
         var star =[];
@@ -244,11 +274,27 @@ frameRate(60);
 
         // START - draw objects =============================================================================
         // Video stuff
-        //*************************add new***********************************************
+
         prisonObj.prototype.draw = function(){
 
             image(this.png[0],this.position.x,this.position.y,600,400);
        }
+
+
+
+        //**************************add ending and merchant
+        carObj.prototype.draw = function(){
+
+            image(this.png[0],this.position.x,this.position.y,1000,800);
+       }
+
+        merchantObj.prototype.draw = function() {
+            image(this.NPC[0],this.position.x,this.position.y,100,100);
+
+        }
+        //**************************add ending and merchant
+
+
 
        particleObj.prototype.draw = function() {
            noStroke();
@@ -268,8 +314,7 @@ frameRate(60);
            this.position.add(v);
            this.timeLeft--;
        };
-   //*************************add new***********************************************
-   //*************************add new***********************************************
+
         videoPlayer1Obj.prototype.draw = function() {
            image(this.NPC[0],this.position.x,this.position.y,300,300);
 
@@ -293,8 +338,7 @@ frameRate(60);
             }
 
         }
-        //*************************add new***********************************************
-        //*************************add new***********************************************
+
         var initializeAliens = function() {
             var x = 300;
             var y = 300;
@@ -503,6 +547,18 @@ frameRate(60);
            text("YOU LOSE", 600, 200);
         }
 
+
+        //**************************add ending and merchant
+        var drawWin = function() {
+            winplayer[0].draw();
+             carImage[0].draw();
+            fill(255,255,255);
+            textSize(50);
+            text("YOU WIN!!!", 900, 200);
+        }
+        //**************************add ending and merchant
+
+
         var drawIns = function()
         {
             background(85, 106, 163);
@@ -540,8 +596,6 @@ frameRate(60);
         };
 
 
-        //*************************add new***********************************************
-        //*************************add new***********************************************
 
         var backGroundDraw = function(w, h) {
             stroke(0);
@@ -1258,12 +1312,14 @@ frameRate(60);
                 fill(0, 0, 0);
                 textSize(20);
                text("BACK", 12, 37);
-            }else if(start === 4){
+            }else if(start === 4){//******************add merchant
                 background(85, 106, 163);
                 backGroundDraw(1280, 720);
                 inGameUpdate();
                 drawTilemap();
                 players[0].draw();
+                merchant = [new merchantObj(50,270)];
+                merchant[0].draw();
                 fill(255, 255, 255);
                 rect(10,20,60,20);
                 fill(0, 0, 0);
@@ -1275,8 +1331,7 @@ frameRate(60);
                 drawEnding();
             }
             else if (start === 6) { // win
-                background(85, 106, 163);
-                text("You Win", 500, 300);
+                drawWin();//******************add ending
             }
 
         };
