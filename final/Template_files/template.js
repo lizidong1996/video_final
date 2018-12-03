@@ -29,7 +29,7 @@ frameRate(60);
         var traps = [];
         var money = 100;
         var gun = 0;
-        var smoke = 0;
+        var smokes = 0;
         var ammo = 0;
         ////////////////////////////////////////
         var players = [];
@@ -40,7 +40,7 @@ frameRate(60);
         var initial = 0;
         var wallImage = loadImage("Template_files/wall.png");
 
-        var start = 10;//starting at start ===10, that is starting video
+        var start = 0;//starting at start ===10, that is starting video
         var startplayer=[];
          var endplayer=[];
         var videoTranslate=0;
@@ -55,6 +55,10 @@ frameRate(60);
         var carImage = [];
         var merchant =[];
         //*************************add ending and merchant****************
+        var smoke = [];
+        var throwSmoke = 0;
+        var isChat=0;
+        var window=0;
 
         // helper function
         var checkCollision = function(x1, y1, w1, h1, x2, y2, w2, h2) {
@@ -102,7 +106,6 @@ frameRate(60);
         var merchantObj = function(x,y){//create NPC 1 object
             this.position = new PVector(x, y);
             this.NPC = [];
-            this.isChat = 0;
             this.NPC.push(loadImage("Template_files/merchant.png"));
         };
         //*************************add ending and merchant****************
@@ -197,7 +200,9 @@ frameRate(60);
             golds = [];
             cops = [];
             merchant = [];
-            
+            smoke = [];
+            throwSmoke = 0;
+            isChat =0;
             ///////////////////////////////////////
             var w = tilemap[0].length;
             var h = tilemap.length;
@@ -379,12 +384,7 @@ frameRate(60);
 
         merchantObj.prototype.draw = function() {
             image(this.NPC[0],this.position.x,this.position.y,160,180);
-            if(this.isChat===1){
-                fill(255,255,255);
-                rect(this.position.x,this.position.y,400,300);
 
-            }
-           
 
         };
         merchantObj.prototype.merchantCollide = function(){
@@ -1433,6 +1433,8 @@ frameRate(60);
                 {
                     start = 0;
                 }
+
+
             }
             else if(start === 5){//enter record
                 if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
@@ -1448,31 +1450,63 @@ frameRate(60);
             }
         };
 
+
+
         var keyPressed = function() {
 			if (start === 4) {
-            if (keyCode === LEFT) {
-                players[0].direction = 1;
-				players[0].isStill = 0;
-                players[0].moving = true;
+                if(isChat===0){
+                    if (keyCode === LEFT) {
+                        players[0].direction = 1;
+                        players[0].isStill = 0;
+                        players[0].moving = true;
 
-            }else if (keyCode === RIGHT){
-                players[0].direction = 0;
-				players[0].isStill = 0;
-                players[0].moving = true;
-            }
-			else if(keyCode === UP){
-                if (players[0].isJumped === 0) {
-				    players[0].isJumped = 1;
-                    NPC1jump = 1;
-                }
-            }
-            else if(keyCode === SHIFT){
-                for(var i = 0; i<merchant.length;i++){
-                    if(merchant[i].merchantCollide()){
-                        merchant[i].isChat = 1;
+                    }else if (keyCode === RIGHT){
+                        players[0].direction = 0;
+                        players[0].isStill = 0;
+                        players[0].moving = true;
                     }
+                    else if(keyCode === UP){
+                        if (players[0].isJumped === 0) {
+                            players[0].isJumped = 1;
+                            NPC1jump = 1;
+                        }
+                    }
+                    else if(keyCode === SHIFT){
+                            isChat = 1;
+                    }
+                }else{
+                    if(keyCode === SHIFT){
+                         isChat = 0;
+                     }else if(keyCode === DOWN){
+
+                        if(window === 2){
+                            window =0;
+                        }else{
+                            window ++;
+                        }
+                    }else if(keyCode === UP){
+
+                        if(window === 0){
+                            window =2;
+                        }else{
+                            window --;
+                        }
+                    }else if(keyCode === 10){
+
+                        if(window==0){
+                            smokes ++;
+                            money = money -20;
+                        }else if(window==1){
+                                gun ++;
+                             money = money -100;
+                       }else if(window==2){
+                                ammo ++;
+                             money = money -50;
+                       }
+                    }
+
                 }
-            }
+
 				
         }
         };
@@ -1490,13 +1524,56 @@ frameRate(60);
 					//NPC1jump = 0;
 					//players[0].acceleration.set(0,0);
 					//players[0].velocity.set(0,0);
+                }else if(keyCode === 32){
+                    smoke =[];
+                    if (throwSmoke===0){
+                    for (var i=0; i<1000; i++) {
+                            if(players[0].direction===1){
+                                smoke.push(new particleObj(players[0].position.x-400, players[0].position.y));
+                            }else{
+                                smoke.push(new particleObj(players[0].position.x+400, players[0].position.y));
+                            }
+
+                        }
+                    throwSmoke = 1;
+                    }else if(throwSmoke===1){
+                        for (var i=0; i<1000; i++) {
+                                if(players[0].direction===1){
+                                    smoke.push(new particleObj(players[0].position.x-400, players[0].position.y));
+                                }else{
+                                    smoke.push(new particleObj(players[0].position.x+400, players[0].position.y));
+                                }
+
+                            }
+                        throwSmoke = 1;
+                    }
                 }
                 players[0].moving = false;
+
+
             }
             
         };
 		
+        var smokeShell = function(){
 
+            if(throwSmoke === 1){
+                for (var i=0; i<smoke.length; i++) {
+
+                        if (smoke[i].timeLeft > 0) {
+                            smoke[i].draw();
+                            smoke[i].move();
+                        }
+                        else {
+                            smoke.splice(i, 1);
+                        }
+                    }
+                if(smoke[smoke.length-1].timeLeft===0){
+                    throwSmoke=0;
+                }
+
+            }
+        }
         var checkGameEnd = function()
         {
             for (var i=0; i < players.length; i++) {
@@ -1542,7 +1619,49 @@ frameRate(60);
                 players[0].jump();
             }
         };
+        var bag=function(){
+            fill(255, 0, 0);
+            textSize(20);
+            text("Money  "+money, 1100, 600);
+            text("Smoke Grenade "+smokes, 1100, 630);
+            text("Gun  " + gun, 1100, 660);
+            text("Ammo  " +ammo, 1100, 690);
+        }
+        var chatwindow = function(){
+            if(isChat===1){
+                fill(255,255,255);
+                ellipse(520,400,400,200);
+                fill(0, 0, 0);
+                textSize(30);
+                text("Purchase List", 425, 340);
 
+                if(window==0){
+                    fill(255, 255, 255);
+                    rect(450,400,160,30);
+                    rect(450,450,160,30);
+                    fill(112, 162, 212);
+                    rect(450,350,160,30);
+                }else if(window==1){
+                    fill(255, 255, 255);
+                    rect(450,350,160,30);
+                    rect(450,450,160,30);
+                    fill(112, 162, 212);
+                    rect(450,400,160,30);
+               }else if(window==2){
+                    fill(255, 255, 255);
+                    rect(450,350,160,30);
+                    rect(450,400,160,30);
+                    fill(112, 162, 212);
+                    rect(450,450,160,30);
+               }
+                fill(0, 0, 0);
+                textSize(18);
+                text("Smoke Grenade 20$", 450, 370);
+                text("Gun  100$", 470, 420);
+                text("Ammo 50$", 470, 470);
+
+            }
+        }
         // END - funtionality =========================================================================
 
         var draw = function() {
@@ -1568,6 +1687,7 @@ frameRate(60);
                 inGameUpdate();
                 drawTilemap();
                 players[0].draw();
+                smokeShell();
                 popMatrix();
                 //merchant = [new merchantObj(50,270)];
                 //merchant[0].draw();
@@ -1576,8 +1696,9 @@ frameRate(60);
                 fill(0, 0, 0);
                 textSize(20);
                 text("BACK", 12, 37);
-                
                 checkGameEnd();
+                chatwindow();
+                bag();
                     
             }
             else if (start === 5) { // lose
