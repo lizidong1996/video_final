@@ -28,11 +28,14 @@ frameRate(60);
         var players = [];
         var traps = [];
         var guards = [];
+        var missles = [];
+        var bullets = [];
         var money = 100;
         var gun = 0;
         var smokes = 0;
         var ammo = 0;
         ////////////////////////////////////////
+        var level = 0;
         var players = [];
         var traps = [];
         var exits = [];
@@ -41,7 +44,7 @@ frameRate(60);
         var initial = 0;
         var wallImage = loadImage("Template_files/wall.png");
 
-        var start = 0;//starting at start ===10, that is starting video
+        var start = 10;//starting at start ===10, that is starting video
         var startplayer=[];
          var endplayer=[];
         var videoTranslate=0;
@@ -110,6 +113,23 @@ frameRate(60);
             this.NPC.push(loadImage("Template_files/merchant.png"));
         };
         //*************************add ending and merchant****************
+
+        var bulletObj = function(x, y, direction) {
+            this.x = x;
+            this.y = y;
+            if (direction <= 0) {
+                this.speed = 25;
+            }
+            else {
+                this.speed = -25;
+            }
+        };
+
+        var missleObj = function(x, y) {
+            this.x = x;
+            this.y = y;
+            this.speed = 25;
+        }
 
         var particleObj = function(x, y) {
             this.position = new PVector(x, y);
@@ -191,6 +211,7 @@ frameRate(60);
         var guardObj = function(x,y){
             this.x = x;
             this.y = y;
+            this.past = 0;
         };
         guardObj.prototype.draw = function(){
             fill(173, 127, 47);
@@ -199,10 +220,28 @@ frameRate(60);
             fill(230, 177, 18);
             rect(this.x-10,this.y+50,90,30);
         };
+
+        guardObj.prototype.fire = function() {
+            if (millis() > this.past + 3000) {
+                missles.push(new missleObj(this.x + 180, this.y + 30));
+                this.past = millis();
+            }
+        };
+
+        missleObj.prototype.move = function() {
+            this.x += this.speed;
+        }
+
+        missleObj.prototype.draw = function() {
+            noStroke();
+            fill(255, 0, 0);
+            ellipse(this.x, this.y, 50, 25);
+        };
+
         var gunObj = function (x,y){
             this.position = new PVector(x, y);
             this.png = [];
-            this.png.push((loadImage("Template_files/gunleft.png")));
+            this.png.push((loadImage("Template_files/gunleft.png"))); // citation from https://cn.dreamstime.com/
             this.png.push((loadImage("Template_files/gunright.png")));
         };
         gunObj.prototype.draw = function(direction){
@@ -220,9 +259,23 @@ frameRate(60);
                 }
             
         };
+
         gunObj.prototype.move = function(x, y){
             this.position = new PVector(x,y);
         };
+
+        bulletObj.prototype.move = function(x, y) {
+            this.x += this.speed;
+        }
+
+        bulletObj.prototype.collide = function(x, y, w, h) {
+            if (checkCollision(this.x, this.y, 5, 5, x, y, w, h)) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
         
         ///////////////////////////////////////
         var initTilemap = function(tilemap) {
@@ -639,6 +692,12 @@ frameRate(60);
 
         };
 
+        bulletObj.prototype.draw = function() {
+            noStroke();
+            fill(255, 132, 0);
+            ellipse(this.x, this.y, 20, 20);
+        }
+
         var drawStarting = function() {
             background(12, 24, 59);
                 noStroke();
@@ -673,8 +732,8 @@ frameRate(60);
                 textSize(28);
                 text("Instruction", 610, 480);
                 textSize(26);
-                text("Record", 630, 580);
-                text("PLAY", 600, 680);
+                text("Credits", 630, 580);
+                text("     PLAY", 600, 680);
                 fill(255, 255, 255);
                 textSize(20);
                 textFont(createFont("fantasy"));
@@ -727,15 +786,16 @@ frameRate(60);
                 text("Down", 340, 215);
                 text("Left", 410, 215);
                 text("Right Use Keyboard to control NPC1", 470, 215);
-                text("2:  NPCs should avoid obstacles, if collide with them, NPCs will lose one heart ,Every NPC has 3 hearts", 260, 265);
-
+                text("2:  Player should avoid colliding with cop and trap, if collide with them, Player will lose", 260, 265);
+                text("3:  Player can collect coins in the map, so he can buy smoke grenade, gun, and ammo from merchant", 260, 315);
+                text("4:  Player can use gun (with enough ammo)to kill the cop, and use smoke grenade can keep out of sight by cop ", 260, 365);
+                text("5:  Press shift to open purchase window when meet merchant, then press shift again to exit", 260, 415);
+                text("    In purchase window, use UP and DOWN to switch item, press Enter to buy", 260, 465);
+                text("6:  Press Control to throw smoke grenade, and press Space to shoot", 260, 515);
                 fill(255, 255, 255);
-                rect(1200,20,60,20);
                 rect(10,20,60,20);
                 fill(0, 0, 0);
-
                 textSize(20);
-                text("NEXT", 1212, 37);
                 text("BACK", 12, 37);
         };
 
@@ -906,6 +966,12 @@ frameRate(60);
             }
             for (var i=0; i<guards.length; i++){
                 guards[i].draw();
+            }
+            for (var i=0; i<bullets.length; i++) {
+                bullets[i].draw();
+            }
+            for (var i=0; i<missles.length; i++) {
+                missles[i].draw();
             }
         };
         
@@ -1132,7 +1198,7 @@ frameRate(60);
         
         NPC1Obj.prototype.move = function() {
               var speed = 10;
-              if (this.direction === 0 ){
+              if (this.direction === 0 ){ // right
                   
                   for (var i = 0; i < walls.length; i++) {
                       if (checkCollision(this.position.x + speed, this.position.y, this.width, this.height, walls[i].x, walls[i].y, 40, 40)) {
@@ -1164,7 +1230,7 @@ frameRate(60);
                   this.position.x += speed;
 
               }
-              else if (this.direction === 1)
+              else if (this.direction === 1) // left
               {
                 for (var i = 0; i < walls.length; i++) {
                     if (checkCollision(this.position.x - speed, this.position.y, this.width, this.height, walls[i].x, walls[i].y, 40, 40)) {
@@ -1363,16 +1429,16 @@ frameRate(60);
             "w------------------------------w",
             "w------------------------------w",
             "w------------------------------w",
-            "w-------------------------e----w",
-            "w--------wwwwwwwwwwwwwwwwwwwwwww",
+            "w-----------------------G-e----w",
+            "w--------wwwwwDDDwwwwwwwwwwwwwww",
             "w------------------------------w",
             "w------------------------------w",
-            "w------------------------------w",
+            "w-----G------------------------w",
             "wwwwwwwwwwwwwwwwwwwwww---------w",
             "w------------------------------w",
             "w------------------------------w",
-            "w------------------------------w",
-            "w------wwwwwwwwwwwwwwwwwwwwwwwww",
+            "w------------G-----------------w",
+            "w--M---wwwwwwwwwwwwwwwwwwwwwwwww",
             "w------------l-----------------w",
             "w---------------------------1--w",
             "w------------------------------w",
@@ -1382,16 +1448,16 @@ frameRate(60);
             var tilemap2 = [
                 "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
                 "w--------------------------------------------------------------w",
-                "w----------------------------------------T---------------------w",
+                "w----------------C-----------------------T---------------------w",
                 "w------e-------------------------------------------------------w",
                 "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww----------------w",
-                "w--------------------------------------------------------------w",
+                "w--------------------------l-----------------------------------w",
                 "w--------------------------------------------------------------w",
                 "w-------------------------------------------------------wwwwwwww",
                 "w-----G-----------C--------------------------------------------w",
                 "w--------------------------------------------------------------w",
                 "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww---------------w",
-                "w--------------------------------------------------------------w",
+                "w-------------------------l------------------------------------w",
                 "w--------------------------------------------------------------w",
                 "w-------------------------------------------------------wwwwwwww",
                 "w----G-----------C---------------------------------------------w",
@@ -1401,9 +1467,9 @@ frameRate(60);
                 "w---------------------------------G----------------------------w",
                 "w--------------------------------------------------------------w",
                 "w------------------------------wwwww------------wwwww----------w",
-                "w--------------------------------------------------wwwwww------w",
+                "w--------------------------------l---------------l-wwwwww------w",
+                "w-----------------------------------------------------M--------w",
                 "w--------------------------------------------------------------w",
-                "w---------------M----------------------------------------------w",
                 "w-1---------------------wwwwwwwwwwwwwww--------------------wwwww",
                 "w----------------------www-----------B------------------wwwwwwww",
                 "w--------------------wwwww----G------B-------------wwwwwwwwwwwww",
@@ -1453,7 +1519,8 @@ frameRate(60);
                 else if(mouseX > 600 && mouseX < 750 && mouseY > 650 && mouseY <700)
                 {
                     start = 4;
-                    initTilemap(tilemap2);
+                    level = 1;
+                    initTilemap(tilemap1);
                 }
             }else if(start === 1){//enter instruction
                 if(mouseX < 70 && mouseX > 10 && mouseY < 40 && mouseY >20)
@@ -1499,7 +1566,7 @@ frameRate(60);
 
         var keyPressed = function() {
 			if (start === 4) {
-                if(isChat===0){
+                if(isChat===0){  // no chat
                     if (keyCode === LEFT) {
                         players[0].direction = 1;
                         players[0].isStill = 0;
@@ -1522,8 +1589,15 @@ frameRate(60);
                                isChat = 1;
                             }
                         }
-
                     }
+                    else if (keyCode === 32) {
+                        if (ammo > 0 && IsGunBought === 1) {
+                            bullets.push(new bulletObj(players[0].position.x, players[0].position.y + 50, players[0].direction));
+                            ammo--;
+                        }
+                    }
+
+                    
                 }else{
                     if(keyCode === SHIFT){
                          isChat = 0;
@@ -1543,15 +1617,15 @@ frameRate(60);
                         }
                     }else if(keyCode === 10){
 
-                        if(window==0 && money>0){
+                        if(window==0 && money>=20){
                             smokes ++;
                             money = money -20;
-                        }else if(window==1&& money>0){
+                        }else if(window==1&& money>=100){
                                 gun ++;
                                 IsGunBought = 1;
                              money = money -100;
-                       }else if(window==2&& money>0){
-                                ammo ++;
+                       }else if(window==2&& money>=50){
+                                ammo+= 5;
                              money = money -50;
                        }
                     }
@@ -1575,8 +1649,9 @@ frameRate(60);
 					//NPC1jump = 0;
 					//players[0].acceleration.set(0,0);
 					//players[0].velocity.set(0,0);
-                }else if(keyCode === 32){
+                }else if(keyCode === CONTROL && smokes > 0){
                     smoke =[];
+                    smokes--;
                     if (throwSmoke===0){
                     for (var i=0; i<1000; i++) {
                             if(players[0].direction===1){
@@ -1619,7 +1694,7 @@ frameRate(60);
                             smoke.splice(i, 1);
                         }
                     }
-                if(smoke[smoke.length-1].timeLeft===0){
+                if(smoke[smoke.length-1].timeLeft===100){
                     throwSmoke=0;
                 }
 
@@ -1640,7 +1715,13 @@ frameRate(60);
                 for (var j=0; j < exits.length; j++) {
                     var exit = exits[j];
                     if (exit.collide(x2, y2, player.width, player.height)) {
-                        start = 6;
+                        if (level === 1) {
+                            level = 2;
+                            initTilemap(tilemap2);
+                        }
+                        else {
+                            start = 6;
+                        }
                         return;
                     }
                 }
@@ -1653,7 +1734,13 @@ frameRate(60);
                 }
                 for (var j=0; j < cops.length; j++) {
                     var cop = cops[j];
-                    if (cop.copCollide()) {
+                    if (cop.copCollide() && throwSmoke != 1) {
+                        start = 5;
+                        return;
+                    }
+                }
+                for (var j=0; j < missles.length; j++) {
+                    if (checkCollision(missles[j].x, missles[j].y, 25, 25, x2, y2, 80, 80)) {
                         start = 5;
                         return;
                     }
@@ -1675,6 +1762,28 @@ frameRate(60);
                     money += 20;
                 }
             }
+            for (var i=0; i<missles.length; i++) {
+                missles[i].move();
+            }
+            for (var i=0; i<bullets.length; i++) {
+                bullets[i].move();
+                for (var j=0; j<cops.length; j++) {
+                    var x = cops[j].position.x;
+                    var y = cops[j].position.y;
+                    var w = cops[j].width;
+                    var h = cops[j].height;
+                    if (bullets[i].collide(x, y, w, h)) {
+                        cops.splice(j, 1);
+                        //bullets.splice(i, 1);
+                    }
+                }
+                if (bullets[i].x < 0 || bullets[i].x > mapWidth) {
+                    bullets.splice(i, 1);
+                }
+            }
+            for (var i=0; i<guards.length; i++) {
+                guards[i].fire();
+            }
         };
         var bag=function(){
             fill(255, 0, 0);
@@ -1685,13 +1794,14 @@ frameRate(60);
             text("Ammo  " +ammo, 1100, 690);
         }
         var chatwindow = function(){
+            stroke(0);
+            strokeWeight(1);
             if(isChat===1){
                 fill(255,255,255);
                 ellipse(520,400,400,200);
                 fill(0, 0, 0);
                 textSize(30);
                 text("Purchase List", 425, 340);
-
                 if(window==0){
                     fill(255, 255, 255);
                     rect(450,400,160,30);
@@ -1719,6 +1829,27 @@ frameRate(60);
 
             }
         }
+
+        var drawCredits = function(){
+            background(85, 106, 163);
+                noStroke();
+                fill(125, 148, 209);
+                rect(150,50,1050,600);
+                textFont(createFont("fantasy"));
+                 fill(255, 242, 0);
+                textSize(40);
+                text("Credits", 570, 100);
+                textSize(25);
+                text("Team Member: Moqi Zhang, Jie Zhang, Zidong Li", 220, 215);
+                text("Moqi Zhang is responsible for starting flash video, connection screens and images work", 220, 265);
+                text("Jie Zhang and Zidong Li are responsible game process", 220, 315);
+                fill(255, 255, 255);
+                rect(10,20,60,20);
+                fill(0, 0, 0);
+
+                textSize(20);
+                text("BACK", 12, 37);
+        }
         // END - funtionality =========================================================================
 
         var draw = function() {
@@ -1730,12 +1861,7 @@ frameRate(60);
             }else if (start === 1){//instruction
                 drawIns();
             }else if(start === 2){ 
-                background(85, 106, 163);
-                fill(255, 255, 255);
-                rect(10,20,60,20);
-                fill(0, 0, 0);
-                textSize(20);
-               text("BACK", 12, 37);
+                drawCredits();
             }else if(start === 4){//******************add merchant
                 pushMatrix();
                 translate(moveX(), moveY())
@@ -1760,9 +1886,19 @@ frameRate(60);
             }
             else if (start === 5) { // lose
                 drawEnding();
+                money = 100;
+                IsGunBought = 0;
+                ammo = 0;
+                smokes = 0;
+                gun = 0;
             }
             else if (start === 6) { // win
                 drawWin();//******************add ending
+                money = 100;
+                IsGunBought = 0;
+                ammo = 0;
+                smokes = 0;
+                gun = 0;
             }
 
         };
