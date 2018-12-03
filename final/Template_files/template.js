@@ -4,7 +4,7 @@ frameRate(60);
         //one gun = 100
         //one smoke grenade = 20
         //5 ammo = 50
-
+        var IsGunBought = 0;
        var NPC1 = [];
        var block = [];
 		var keyArray = [];
@@ -27,6 +27,7 @@ frameRate(60);
         var golds = [];
         var players = [];
         var traps = [];
+        var guards = [];
         var money = 100;
         var gun = 0;
         var smokes = 0;
@@ -170,6 +171,7 @@ frameRate(60);
             this.w = 40;
             this.wDir = -1;
         }
+
         goldObj.prototype.draw = function(){
             fill(240, 234, 156);
             ellipse(this.x, this.y, this.w, 40);
@@ -186,6 +188,42 @@ frameRate(60);
             }
             else return false;
         };
+        var guardObj = function(x,y){
+            this.x = x;
+            this.y = y;
+        };
+        guardObj.prototype.draw = function(){
+            fill(173, 127, 47);
+            rect(this.x,this.y+20,60,40);
+            rect(this.x+60,this.y+30,80,10);
+            fill(230, 177, 18);
+            rect(this.x-10,this.y+50,90,30);
+        };
+        var gunObj = function (x,y){
+            this.position = new PVector(x, y);
+            this.png = [];
+            this.png.push((loadImage("Template_files/gunleft.png")));
+            this.png.push((loadImage("Template_files/gunright.png")));
+        };
+        gunObj.prototype.draw = function(direction){
+                if(direction === 0){
+                    pushMatrix();
+                    translate(this.position.x+60,this.position.y+40);
+                    image(this.png[1],0, 10, 60,20);
+                    popMatrix();
+                }
+                else if(direction === 1){
+                    pushMatrix();
+                    translate(this.position.x+25,this.position.y+40);
+                    image(this.png[0],-70, 10, 60,20);
+                    popMatrix();
+                }
+            
+        };
+        gunObj.prototype.move = function(x, y){
+            this.position = new PVector(x,y);
+        };
+        
         ///////////////////////////////////////
         var initTilemap = function(tilemap) {
             walls = [];
@@ -200,6 +238,7 @@ frameRate(60);
             golds = [];
             cops = [];
             merchant = [];
+            guards = [];
             smoke = [];
             throwSmoke = 0;
             isChat =0;
@@ -238,6 +277,9 @@ frameRate(60);
                         case 'M':
                             merchant.push(new merchantObj(j*40, i*40));
                             break;
+                        case 'T':
+                            guards.push(new guardObj(j*40, i*40));
+                            break;
                         ////////////////////////////////////
                     }
                 }
@@ -258,7 +300,7 @@ frameRate(60);
             this.Rspeed = 0.5;
             this.Lrotate = 0;
             this.Rrotate = 0;
-
+            this.gun = new gunObj(x, y);
             this.LspeedLeg =-0.5;
             this.RspeedLeg = 0.5;
             this.LrotateLeg = 0;
@@ -856,17 +898,14 @@ frameRate(60);
                 cops[i].draw();
             }
             for (var i=0; i<golds.length; i++){
-                if(golds[i].goldCollide()){
-                    golds[i].isEaten = 1;
-                    money += 20;
-                }
-                if(golds[i].isEaten===0){
-                    golds[i].draw();
-                }
+                golds[i].draw();
                 
             }
             for (var i=0; i<merchant.length; i++){
                 merchant[i].draw();
+            }
+            for (var i=0; i<guards.length; i++){
+                guards[i].draw();
             }
         };
         
@@ -980,12 +1019,7 @@ frameRate(60);
         };
         
         NPC1Obj.prototype.draw = function() {//draw NPC 1 object
-			if(this.isStill === 1){
-				this.RrotateLeg = 0;
-				this.LrotateLeg = 0;
-				this.Rrotate = 0;
-				this.Lrotate = 0;
-			}
+			
 			
 			if(this.direction === 0){
 				pushMatrix();
@@ -1047,8 +1081,18 @@ frameRate(60);
 				popMatrix();
 			}
 	
-            
-
+            if(this.isStill === 1){
+				this.RrotateLeg = 0;
+				this.LrotateLeg = 0;
+				this.Rrotate = 0;
+                this.Lrotate = 0;
+                if(IsGunBought){
+                    this.gun.draw(this.direction);
+                    
+                }
+                
+            }
+            this.gun.move(this.position.x, this.position.y);
 
         };
 
@@ -1149,7 +1193,7 @@ frameRate(60);
                       this.RspeedLeg = -this.RspeedLeg;
                   }
                   this.position.x -= speed;
-              }
+                }
               
         };
 
@@ -1170,6 +1214,7 @@ frameRate(60);
                      this.isJumped = 0;
                  }
              }
+             this.gun.move(this.position.x,this.position.y);
         }
 
         copObj.prototype.draw = function() {//draw NPC 1 object
@@ -1334,36 +1379,36 @@ frameRate(60);
             "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
             ];
 
-    var tilemap2 = [
-        "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-        "w--------------------------------------------------------------w",
-        "w--------------------------------------------------------------w",
-        "w------e-------------------------------------------------------w",
-        "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww----------------w",
-        "w--------------------------------------------------------------w",
-        "w--------------------------------------------------------------w",
-        "w-------------------------------------------------------wwwwwwww",
-        "w-----G-----------C--------------------------------------------w",
-        "w--------------------------------------------------------------w",
-        "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww---------------w",
-        "w--------------------------------------------------------------w",
-        "w--------------------------------------------------------------w",
-        "w-------------------------------------------------------wwwwwwww",
-        "w----G-----------C---------------------------------------------w",
-        "w--------------------------------------------------------------w",
-        "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww---------------w",
-        "w--------------------------------------------------------------w",
-        "w---------------------------------G----------------------------w",
-        "w--------------------------------------------------------------w",
-        "w------------------------------wwwww------------wwwww----------w",
-        "w--------------------------------------------------wwwwww------w",
-        "w--------------------------------------------------------------w",
-        "w---------------M----------------------------------------------w",
-        "w-1---------------------wwwwwwwwwwwwwww--------------------wwwww",
-        "w----------------------www-----------B------------------wwwwwwww",
-        "w--------------------wwwww----G------B-------------wwwwwwwwwwwww",
-        "wwwwwwwDDDDwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
-    ];
+            var tilemap2 = [
+                "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+                "w--------------------------------------------------------------w",
+                "w----------------------------------------T---------------------w",
+                "w------e-------------------------------------------------------w",
+                "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww----------------w",
+                "w--------------------------------------------------------------w",
+                "w--------------------------------------------------------------w",
+                "w-------------------------------------------------------wwwwwwww",
+                "w-----G-----------C--------------------------------------------w",
+                "w--------------------------------------------------------------w",
+                "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww---------------w",
+                "w--------------------------------------------------------------w",
+                "w--------------------------------------------------------------w",
+                "w-------------------------------------------------------wwwwwwww",
+                "w----G-----------C---------------------------------------------w",
+                "w--------------------------------------------------------------w",
+                "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww---------------w",
+                "w--------------------------------------------------------------w",
+                "w---------------------------------G----------------------------w",
+                "w--------------------------------------------------------------w",
+                "w------------------------------wwwww------------wwwww----------w",
+                "w--------------------------------------------------wwwwww------w",
+                "w--------------------------------------------------------------w",
+                "w---------------M----------------------------------------------w",
+                "w-1---------------------wwwwwwwwwwwwwww--------------------wwwww",
+                "w----------------------www-----------B------------------wwwwwwww",
+                "w--------------------wwwww----G------B-------------wwwwwwwwwwwww",
+                "wwwwwwwDDDDwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
+            ];
 
         // END - tilemaps =========================================================
 
@@ -1498,13 +1543,14 @@ frameRate(60);
                         }
                     }else if(keyCode === 10){
 
-                        if(window==0){
+                        if(window==0 && money>0){
                             smokes ++;
                             money = money -20;
-                        }else if(window==1){
+                        }else if(window==1&& money>0){
                                 gun ++;
+                                IsGunBought = 1;
                              money = money -100;
-                       }else if(window==2){
+                       }else if(window==2&& money>0){
                                 ammo ++;
                              money = money -50;
                        }
@@ -1622,6 +1668,12 @@ frameRate(60);
             }
             if (players[0].isJumped != 0) {
                 players[0].jump();
+            }
+            for (var i=0; i<golds.length; i++){
+                if(golds[i].goldCollide()){
+                    golds.splice(i, 1);
+                    money += 20;
+                }
             }
         };
         var bag=function(){
