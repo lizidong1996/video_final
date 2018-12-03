@@ -1472,7 +1472,12 @@ frameRate(60);
                         }
                     }
                     else if(keyCode === SHIFT){
-                            isChat = 1;
+                        for(var i =0;i<merchant.length;i++){
+                            if(merchant[i].merchantCollide()){
+                               isChat = 1;
+                            }
+                        }
+
                     }
                 }else{
                     if(keyCode === SHIFT){
