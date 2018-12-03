@@ -102,6 +102,7 @@ frameRate(60);
         var merchantObj = function(x,y){//create NPC 1 object
             this.position = new PVector(x, y);
             this.NPC = [];
+            this.isChat = 0;
             this.NPC.push(loadImage("Template_files/merchant.png"));
         };
         //*************************add ending and merchant****************
@@ -194,6 +195,9 @@ frameRate(60);
             bricks = [];
             groundTraps = [];
             golds = [];
+            cops = [];
+            merchant = [];
+            
             ///////////////////////////////////////
             var w = tilemap[0].length;
             var h = tilemap.length;
@@ -225,6 +229,9 @@ frameRate(60);
                             break;
                         case 'G':
                             golds.push(new goldObj(j*40, i*40));
+                            break;
+                        case 'M':
+                            merchant.push(new merchantObj(j*40, i*40));
                             break;
                         ////////////////////////////////////
                     }
@@ -356,10 +363,11 @@ frameRate(60);
         // START - draw objects =============================================================================
         // Video stuff
 
+
         prisonObj.prototype.draw = function(){
 
             image(this.png[0],this.position.x,this.position.y,600,400);
-       }
+       };
 
 
 
@@ -367,12 +375,25 @@ frameRate(60);
         carObj.prototype.draw = function(){
 
             image(this.png[0],this.position.x,this.position.y,1000,800);
-       }
+       };
 
         merchantObj.prototype.draw = function() {
-            image(this.NPC[0],this.position.x,this.position.y,100,100);
+            image(this.NPC[0],this.position.x,this.position.y,160,180);
+            if(this.isChat===1){
+                fill(255,255,255);
+                rect(this.position.x,this.position.y,400,300);
 
-        }
+            }
+           
+
+        };
+        merchantObj.prototype.merchantCollide = function(){
+            if(checkCollision(this.position.x, this.position.y, 160,160, players[0].position.x,players[0].position.y
+            ,players[0].width, players[0].height)){
+                return true;
+            }
+            else return false;
+        };
         //**************************add ending and merchant
 
 
@@ -399,12 +420,12 @@ frameRate(60);
         videoPlayer1Obj.prototype.draw = function() {
            image(this.NPC[0],this.position.x,this.position.y,300,300);
 
-        }
+        };
 
         videoPlayer2Obj.prototype.draw = function() {
             image(this.NPCL[0],this.position.x,this.position.y,300,300);
 
-        }
+        };
 
         videoPlayer1Obj.prototype.move = function() {
             if(videoTranslate<170){
@@ -418,7 +439,7 @@ frameRate(60);
                 this.position.x=this.position.x-5;
             }
 
-        }
+        };
 
         var initializeAliens = function() {
             var x = 300;
@@ -529,7 +550,7 @@ frameRate(60);
            }else if (videoTranslate >=600){
                start = 0;
            }
-        }
+        };
 
         alienObj.prototype.move = function() {
             if (this.inFlight > 0) {
@@ -843,6 +864,9 @@ frameRate(60);
                     golds[i].draw();
                 }
                 
+            }
+            for (var i=0; i<merchant.length; i++){
+                merchant[i].draw();
             }
         };
         
@@ -1334,7 +1358,7 @@ frameRate(60);
         "w------------------------------wwwww------------wwwww----------w",
         "w--------------------------------------------------wwwwww------w",
         "w--------------------------------------------------------------w",
-        "w--------------------------------------------------------------w",
+        "w---------------M----------------------------------------------w",
         "w-1---------------------wwwwwwwwwwwwwww--------------------wwwww",
         "w----------------------www-----------B------------------wwwwwwww",
         "w--------------------wwwww----G------B-------------wwwwwwwwwwwww",
@@ -1441,7 +1465,14 @@ frameRate(60);
 				    players[0].isJumped = 1;
                     NPC1jump = 1;
                 }
-			}
+            }
+            else if(keyCode === SHIFT){
+                for(var i = 0; i<merchant.length;i++){
+                    if(merchant[i].merchantCollide()){
+                        merchant[i].isChat = 1;
+                    }
+                }
+            }
 				
         }
         };
@@ -1537,15 +1568,17 @@ frameRate(60);
                 inGameUpdate();
                 drawTilemap();
                 players[0].draw();
-                merchant = [new merchantObj(50,270)];
-                merchant[0].draw();
+                popMatrix();
+                //merchant = [new merchantObj(50,270)];
+                //merchant[0].draw();
                 fill(255, 255, 255);
                 rect(10,20,60,20);
                 fill(0, 0, 0);
                 textSize(20);
                 text("BACK", 12, 37);
-                popMatrix();
+                
                 checkGameEnd();
+                    
             }
             else if (start === 5) { // lose
                 drawEnding();
