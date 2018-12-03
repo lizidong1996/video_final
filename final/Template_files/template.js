@@ -1,6 +1,9 @@
 var sketchProc=function(processingInstance){ with (processingInstance){
 size(1280, 720);
 frameRate(60);
+        //one gun = 100
+        //one smoke grenade = 20
+        //5 ammo = 50
 
        var NPC1 = [];
        var block = [];
@@ -15,6 +18,20 @@ frameRate(60);
         var footpoints = [];
         var foot2points = [];
         var walls = [];
+        ////////////////////////////////////////
+        //added by Jie for tilemap 2
+        var ammos = [];
+        var groundTraps = [];
+        var bricks = [];
+        var cops = [];
+        var golds = [];
+        var players = [];
+        var traps = [];
+        var money = 100;
+        var gun = 0;
+        var smoke = 0;
+        var ammo = 0;
+        ////////////////////////////////////////
         var players = [];
         var traps = [];
         var exits = [];
@@ -128,13 +145,56 @@ frameRate(60);
             this.angleSpeed = 0.02;
             this.lastTime = millis();
         };
-
+        ///////////////////////////////////////
+        //added by Jie for tilemap 2
+        var ammoObj = function(x, y){
+            this.x = x;
+            this.y = y;
+        }
+        var groundTrapObj = function(x, y){
+            this.x = x;
+            this.y = y;
+        }
+        var brickObj = function(x, y){
+            this.x = x;
+            this.y = y;
+        }
+        var goldObj = function(x, y){
+            this.x = x;
+            this.y = y;
+            this.isEaten = 0;
+            this.w = 40;
+            this.wDir = -1;
+        }
+        goldObj.prototype.draw = function(){
+            fill(240, 234, 156);
+            ellipse(this.x, this.y, this.w, 40);
+            fill(140, 106, 26);
+            ellipse(this.x, this.y, this.w*0.8, 32);
+            this.w += this.wDir;
+            if ((this.w > 40) || (this.w < 0)) {
+            this.wDir = -this.wDir;
+            }
+        };
+        goldObj.prototype.goldCollide = function(){
+            if(checkCollision(this.x, this.y, 40,40, players[0].position.x, players[0].position.y,players[0].width, players[0].height)){
+                return true;
+            }
+            else return false;
+        };
+        ///////////////////////////////////////
         var initTilemap = function(tilemap) {
             walls = [];
             players = [];
             traps = [];
             exits = [];
             lights = [];
+            ///////////////////////////////////////
+            //added by Jie
+            bricks = [];
+            groundTraps = [];
+            golds = [];
+            ///////////////////////////////////////
             var w = tilemap[0].length;
             var h = tilemap.length;
             for (var i = 0; i< tilemap.length; i++) {
@@ -152,6 +212,21 @@ frameRate(60);
                         case 'l':
                             lights.push(new lightObj(j*40, i*40));
                             break;
+                        ///////////////////////////////////
+                        //added by Jie 
+                        case 'D':
+                            groundTraps.push(new groundTrapObj(j*40, i*40));
+                            break;
+                        case 'B':
+                            bricks.push(new brickObj(j*40, i*40));
+                            break;
+                        case 'C':
+                            cops.push(new copObj(j*40,i*40));
+                            break;
+                        case 'G':
+                            golds.push(new goldObj(j*40, i*40));
+                            break;
+                        ////////////////////////////////////
                     }
                 }
             }
@@ -204,16 +279,17 @@ frameRate(60);
             this.position = new PVector(x, y);
             this.NPC = [];
             this.NPCL = [];
-            this.Lspeed =-0.5;
-            this.Rspeed = 0.5;
+            this.Lspeed =-0.2;
+            this.Rspeed = 0.2;
             this.Lrotate = 0;
             this.Rrotate = 0;
 
-            this.LspeedLeg =-0.5;
-            this.RspeedLeg = 0.5;
+            this.LspeedLeg =-0.2;
+            this.RspeedLeg = 0.2;
             this.LrotateLeg = 0;
             this.RrotateLeg = 0;
-
+            this.width = 80;
+            this.height = 80;
             this.direction =0;
             this.NPC.push(loadImage("Template_files/copRbody.png"));
             this.NPC.push(loadImage("Template_files/copRarm.png"));
@@ -270,7 +346,7 @@ frameRate(60);
 
 
         var NPCarray = [new NPC1Obj(0,30)];
-        var cop = new copObj(0,200);
+        //var cop = new copObj(0,200);
         var star =[];
 
         for(var j = 0; j < 300; j++){
@@ -724,7 +800,23 @@ frameRate(60);
         }
         return moveY;
     };
-
+        //////////////////////////////////////////////////
+        //added by Jie     draw function for groundTrap
+        groundTrapObj.prototype.draw = function(){
+            fill(77, 76, 76);
+            triangle(this.x,this.y+40,this.x+15,this.y,this.x+30,this.y+40);
+            fill(156, 142, 142);
+            triangle(this.x+15,this.y,this.x+40,this.y+30,this.x+30,this.y+40);
+        };
+        groundTrapObj.prototype.groundTrapCollide = function(){
+            if(checkCollision(this.x,this.y,40,40,players[0].position.x,players[0].position.y, players[0].width,players[0].height)){
+                return true;
+            }
+            else{
+                return false;
+            }
+        };
+        ////////////////////////////////////////////////////
         var drawTilemap = function() {
             for (var i=0; i<walls.length; i++) {
                 walls[i].draw();
@@ -734,6 +826,23 @@ frameRate(60);
             }
             for (var i=0; i<lights.length; i++) {
                 lights[i].draw();
+            }
+            for (var i=0; i<groundTraps.length; i++){
+                groundTraps[i].draw();
+            }
+            for (var i=0; i<cops.length; i++){
+                cops[i].move();
+                cops[i].draw();
+            }
+            for (var i=0; i<golds.length; i++){
+                if(golds[i].goldCollide()){
+                    golds[i].isEaten = 1;
+                    money += 20;
+                }
+                if(golds[i].isEaten===0){
+                    golds[i].draw();
+                }
+                
             }
         };
         
@@ -1105,7 +1214,22 @@ frameRate(60);
 
         copObj.prototype.move = function() {//ball move in arc line
             //if (checkCollision(this.position.x + this))
+                if(this.position.x<100){
+                    this.direction = 0;
+                    this.RrotateLeg = 0;
+                    this.LrotateLeg = 0;
+                    this.Rrotate = 0;
+                    this.Lrotate = 0;
+                }
+                if(this.position.x>1600){
+                    this.direction = 1;
+                    this.RrotateLeg = 0;
+                    this.LrotateLeg = 0;
+                    this.Rrotate = 0;
+                    this.Lrotate = 0;
+                }
               if (this.direction === 0 ){
+                  this.position.x+=4;
                   this.Lrotate += this.Lspeed;
                   this.Rrotate += this.Rspeed;
                   this.LrotateLeg += this.LspeedLeg;
@@ -1128,6 +1252,7 @@ frameRate(60);
 
               }else if (this.direction === 1)
               {
+                  this.position.x-=4;
                   this.Lrotate += this.Lspeed;
                   this.Rrotate += this.Rspeed;
                   this.LrotateLeg += this.RspeedLeg;
@@ -1149,7 +1274,15 @@ frameRate(60);
                   }
               }
         };
-
+        copObj.prototype.copCollide = function(){
+            if(checkCollision(this.position.x,this.position.y,this.width, this.height, players[0].position.x,
+            players[0].position.y,players[0].width, players[0].height)){
+                return true;
+            }
+            else{
+                return false;
+            }
+        };
 
         // END - draw Objects ===================================================================================
 
@@ -1157,56 +1290,54 @@ frameRate(60);
         // START - tilemaps ==================================
         // 1280 * 720  ==>  32 * 18
         var tilemap1 = [
+            "w------------------------------w",
+            "w------------------------------w",
+            "w------------------------------w",
+            "w------------------------------w",
             "w-------------------------e----w",
-            "w-------------------------e----w",
-    "w------------------------------w",
-    "w------------------------------w",
-    "w------------------------------w",
-    "w------------------------------w",
-    "w-------------------------e----w",
-    "w--------wwwwwwwwwwwwwwwwwwwwwww",
-    "w------------------------------w",
-    "w------------------------------w",
-    "w------------------------------w",
-    "wwwwwwwwwwwwwwwwwwwwww---------w",
-    "w------------------------------w",
-    "w------------------------------w",
-    "w------------------------------w",
-    "w------wwwwwwwwwwwwwwwwwwwwwwwww",
-    "w------------l-----------------w",
-    "w---------------------------1--w",
-    "w------------------------------w",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
-    ];
+            "w--------wwwwwwwwwwwwwwwwwwwwwww",
+            "w------------------------------w",
+            "w------------------------------w",
+            "w------------------------------w",
+            "wwwwwwwwwwwwwwwwwwwwww---------w",
+            "w------------------------------w",
+            "w------------------------------w",
+            "w------------------------------w",
+            "w------wwwwwwwwwwwwwwwwwwwwwwwww",
+            "w------------l-----------------w",
+            "w---------------------------1--w",
+            "w------------------------------w",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
+            ];
 
     var tilemap2 = [
         "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
         "w--------------------------------------------------------------w",
-        "w-------e------------------------------------------------------w",
         "w--------------------------------------------------------------w",
+        "w------e-------------------------------------------------------w",
         "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww----------------w",
         "w--------------------------------------------------------------w",
         "w--------------------------------------------------------------w",
         "w-------------------------------------------------------wwwwwwww",
+        "w-----G-----------C--------------------------------------------w",
         "w--------------------------------------------------------------w",
-        "w----------------C---------------------------------------------w",
         "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww---------------w",
         "w--------------------------------------------------------------w",
         "w--------------------------------------------------------------w",
         "w-------------------------------------------------------wwwwwwww",
+        "w----G-----------C---------------------------------------------w",
         "w--------------------------------------------------------------w",
-        "w----------------C---------------------------------------------w",
         "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww---------------w",
         "w--------------------------------------------------------------w",
+        "w---------------------------------G----------------------------w",
         "w--------------------------------------------------------------w",
-        "w---------------------------------A----------------------------w",
         "w------------------------------wwwww------------wwwww----------w",
         "w--------------------------------------------------wwwwww------w",
         "w--------------------------------------------------------------w",
         "w--------------------------------------------------------------w",
         "w-1---------------------wwwwwwwwwwwwwww--------------------wwwww",
         "w----------------------www-----------B------------------wwwwwwww",
-        "w--------------------wwwww----A--------------------wwwwwwwwwwwww",
+        "w--------------------wwwww----G------B-------------wwwwwwwwwwwww",
         "wwwwwwwDDDDwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
     ];
 
@@ -1354,6 +1485,20 @@ frameRate(60);
                         return;
                     }
                 }
+                for (var j=0; j < groundTraps.length; j++) {
+                    var groundT = groundTraps[j];
+                    if (groundT.groundTrapCollide()) {
+                        start = 5;
+                        return;
+                    }
+                }
+                for (var j=0; j < cops.length; j++) {
+                    var cop = cops[j];
+                    if (cop.copCollide()) {
+                        start = 5;
+                        return;
+                    }
+                }
             }
         };
 
@@ -1399,6 +1544,7 @@ frameRate(60);
                 fill(0, 0, 0);
                 textSize(20);
                 text("BACK", 12, 37);
+                popMatrix();
                 checkGameEnd();
             }
             else if (start === 5) { // lose
